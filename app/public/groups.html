@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>FairShare - Travel Groups</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>FairShare</h1>
+<p>Plan trips and share expenses with friends!</p>
+
+<h2>Choose User</h2>
+
+<div class="form">
+    <label for="currentUsername">Username:</label>
+    <input id="currentUsername" type="text">
+    <button id="selectUser">Continue</button>
+</div>
+
+<div id="userMessage"></div>
+
+<h2>Create a Travel Group</h2>
+
+<div class="form">
+    <label for="groupName">Group Name:</label>
+    <input id="groupName" type="text" maxlength="100">
+    <button id="createGroup">Create Group</button>
+</div>
+
+<div id="createMessage"></div>
+
+<h2>My Travel Groups</h2>
+<div id="groups"></div>
+
+<script src="groups.js"></script>
+
+</body>
+</html>
