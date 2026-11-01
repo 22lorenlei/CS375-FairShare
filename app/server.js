@@ -45,6 +45,7 @@ app.post("/users/select", (req, res) => {
 });
 
 
+
 // Create travel group
 app.post("/groups", async (req, res) => {
     let name = req.body.name;
@@ -126,6 +127,44 @@ app.get("/groups", (req, res) => {
         console.log(error);
         res.status(500).end();
     });
+});
+
+app.get("/login", (req, res) => {
+    let username = req.query.username;
+    let password = req.query.password;
+
+    pool.query(`SELECT * FROM users WHERE email = $1 AND password = $2`, [username, password]).then((result) => {
+        if (result.rows.length === 0) {
+            res.status(200).send({message: "Account doesn't exist"});
+        } else {
+            res.status(200).json({message: "Logged in!"});
+        }
+
+    }).catch((error) => {
+        res.status(400).send(error);
+    });
+    
+});
+
+app.post("/register", (req, res) => {
+    if (!Object.hasOwn(req.body, "username") || !Object.hasOwn(req.body, "password")) {
+        res.sendStatus(400)
+    }
+
+    console.log(req.body);
+    /*
+    pool.query(
+        `INSERT INTO users(username, password)
+        VALUES($1, $2)
+        RETURNING *`,
+        [req.body.username, req.body.password]
+    ).then((result) => {
+        console.log("Inserted: ");
+        console.log(result.rows);
+    }).catch((error) => {
+        console.log(error)
+    });
+    */
 });
 
 
