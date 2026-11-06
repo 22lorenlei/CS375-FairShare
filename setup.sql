@@ -10,6 +10,10 @@ CREATE TABLE users (
 CREATE TABLE travel_groups (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    destination VARCHAR(200),
+    start_date DATE,
+    end_date DATE,
+    starting_budget NUMERIC(10,2) DEFAULT 0,
     created_by INTEGER NOT NULL REFERENCES users(id)
 );
 

@@ -1,0 +1,159 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FairShare - My Trips</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<main class="container">
+
+    <!-- Temporary user selection -->
+    <section class="user-section">
+        <h3>Choose User</h3>
+
+        <div class="user-form">
+            <input id="currentUsername" type="text"
+                   placeholder="Enter username">
+
+            <button id="selectUser">Continue</button>
+        </div>
+
+        <p id="userMessage"></p>
+    </section>
+
+    <!-- My Trips -->
+    <div class="page-heading">
+        <div>
+            <h1>My Trips</h1>
+        </div>
+
+        <button id="openModal" class="dark-button" disabled>
+            + Create New Trip
+        </button>
+    </div>
+
+    <!-- Trip tabs -->
+    <div class="tabs">
+        <button id="activeTab" class="tab active-tab">
+            Active Trips
+        </button>
+
+        <button id="pastTab" class="tab">
+            Past Trips
+        </button>
+    </div>
+
+    <!-- Trip list -->
+    <div id="trips"></div>
+
+</main>
+
+
+<!-- Create Trip Modal -->
+<div id="tripModal" class="modal">
+
+    <div class="modal-content">
+
+        <button id="closeModal" class="close-button">
+            &times;
+        </button>
+
+        <h1>Create a New Trip</h1>
+        <p class="subtitle">
+            Start planning your next adventure.
+        </p>
+
+        <form id="tripForm">
+
+            <label for="tripName">Trip Name</label>
+            <input id="tripName" type="text"
+                   placeholder="e.g. Miami Trip"
+                   maxlength="100" required>
+
+            <label for="destination">Destination</label>
+            <input id="destination" type="text"
+                   placeholder="e.g. Miami, Florida"
+                   maxlength="200" required>
+
+            <label for="startDate">Start Date</label>
+            <input id="startDate" type="date" required>
+
+            <label for="endDate">End Date</label>
+            <input id="endDate" type="date" required>
+
+            <label for="budget">Starting Budget</label>
+            <input id="budget" type="number"
+                   placeholder="0.00"
+                   min="0" max="99999999.99"
+                   step="0.01" required>
+
+            <label for="members">Add Group Members</label>
+            <input id="members" type="text"
+                   placeholder="Enter usernames separated by commas">
+
+            <p class="field-note">
+                Enter existing usernames, separated by commas.
+                Leave blank to create a trip with just yourself.
+            </p>
+
+            <p id="createMessage"></p>
+
+            <button type="submit" id="createTrip"
+                    class="dark-button full-button">
+                Create Trip
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+<!-- Add Members Modal -->
+<div id="membersModal" class="modal">
+    <div class="modal-content">
+
+        <button id="closeMembersModal" class="close-button">
+            &times;
+        </button>
+
+        <h1>Add Group Members</h1>
+
+        <form id="membersForm">
+
+            <label for="memberUsername">Username</label>
+            <input id="memberUsername" type="text"
+                   placeholder="Enter username"
+                   maxlength="50" required>
+
+            <p class="field-note">
+                Enter the username of an existing user.
+            </p>
+
+            <p id="membersMessage"></p>
+
+            <button type="submit" id="addMember"
+                    class="dark-button full-button">
+                Add Member
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+<!-- Success notification -->
+<div id="successMessage" class="success-message">
+    <span id="successText"></span>
+    <button id="closeSuccess" type="button">&times;</button>
+</div>
+
+<script src="trips.js"></script>
+
+</body>
+</html>
