@@ -27,6 +27,43 @@ function formatDate(date) {
   return date.toISOString().substring(0, 10);
 }
 
+function getFlightSlice(slice) {
+  let segments = slice.segments;
+
+  let firstSegment = segments[0];
+  let lastSegment = segments[segments.length - 1];
+
+  let airline = "";
+
+  if (firstSegment.operating_carrier) {
+    airline = firstSegment.operating_carrier.name;
+  }
+
+  let flightNumber = "";
+
+  if (
+    firstSegment.operating_carrier &&
+    firstSegment.operating_carrier.iata_code
+  ) {
+    flightNumber += firstSegment.operating_carrier.iata_code;
+  }
+
+  if (firstSegment.operating_carrier_flight_number) {
+    flightNumber += firstSegment.operating_carrier_flight_number;
+  }
+
+  return {
+    airline: airline,
+    flight_number: flightNumber,
+    origin: firstSegment.origin.iata_code,
+    destination: lastSegment.destination.iata_code,
+    departing_at: firstSegment.departing_at,
+    arriving_at: lastSegment.arriving_at,
+    duration: slice.duration,
+    stops: segments.length - 1,
+  };
+}
+
 app.get("/api/trips/:tripId", (req, res) => {
   let tripId = req.params.tripId;
 
@@ -113,8 +150,6 @@ app.get("/api/trips/:tripId/flights", (req, res) => {
 
       let places = response.data.data;
 
-      console.log(places);
-
       if (places.length === 0) {
         res.status(404);
         res.json({
@@ -184,8 +219,39 @@ app.get("/api/trips/:tripId/flights", (req, res) => {
 
       let offers = response.data.data.offers;
 
+      let flights = [];
+
+      let amount = offers.length;
+
+      if (amount > 10) {
+        amount = 10;
+      }
+
+      for (let i = 0; i < amount; i++) {
+        let offer = offers[i];
+
+        let flight = {
+          id: offer.id,
+          airline: offer.owner.name,
+          price: offer.total_amount,
+          currency: offer.total_currency,
+          outbound: null,
+          returning: null,
+        };
+
+        if (offer.slices.length > 0) {
+          flight.outbound = getFlightSlice(offer.slices[0]);
+        }
+
+        if (offer.slices.length > 1) {
+          flight.returning = getFlightSlice(offer.slices[1]);
+        }
+
+        flights.push(flight);
+      }
+
       res.json({
-        offers: offers,
+        flights: flights,
       });
     })
     .catch((error) => {
