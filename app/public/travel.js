@@ -12,6 +12,12 @@ let searchButton = document.getElementById("search-flights");
 let message = document.getElementById("message");
 let flightResults = document.getElementById("flight-results");
 
+let guests = document.getElementById("guests");
+let searchHotelsButton = document.getElementById("search-hotels");
+
+let hotelMessage = document.getElementById("hotel-message");
+let hotelResults = document.getElementById("hotel-results");
+
 function formatTime(dateTime) {
   let time = dateTime.substring(11, 16);
 
@@ -169,6 +175,88 @@ searchButton.addEventListener("click", () => {
           }
 
           flightResults.append(flightDiv);
+        }
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+});
+
+searchHotelsButton.addEventListener("click", () => {
+  hotelMessage.textContent = "";
+  hotelResults.textContent = "";
+
+  let guestValue = guests.value;
+
+  let url = "/api/trips/" + tripId + "/hotels?guests=" + guestValue;
+
+  fetch(url)
+    .then((response) => {
+      return response.json();
+    })
+    .then((body) => {
+      if (body.error) {
+        hotelMessage.textContent = body.error;
+      } else if (body.hotels.length == 0) {
+        hotelMessage.textContent = "No hotels found";
+      } else {
+        for (let i = 0; i < body.hotels.length; i++) {
+          let hotel = body.hotels[i];
+
+          let hotelDiv = document.createElement("div");
+
+          let name = document.createElement("h3");
+          name.textContent = hotel.name;
+
+          let platform = document.createElement("p");
+          platform.textContent = "Platform: " + hotel.platform;
+
+          hotelDiv.append(name);
+          hotelDiv.append(platform);
+
+          if (hotel.city != null) {
+            let city = document.createElement("p");
+            city.textContent = "Location: " + hotel.city;
+
+            hotelDiv.append(city);
+          }
+
+          if (hotel.guest_rating != null) {
+            let rating = document.createElement("p");
+            rating.textContent =
+              "Rating: " + hotel.guest_rating + " / " + hotel.rating_scale;
+
+            hotelDiv.append(rating);
+          }
+
+          if (hotel.nightly_price != null) {
+            let nightlyPrice = document.createElement("p");
+
+            nightlyPrice.textContent =
+              "Nightly Price: $" + hotel.nightly_price + " " + hotel.currency;
+
+            hotelDiv.append(nightlyPrice);
+          }
+
+          if (hotel.total_price != null) {
+            let totalPrice = document.createElement("p");
+
+            totalPrice.textContent =
+              "Total: $" + hotel.total_price + " " + hotel.currency;
+
+            hotelDiv.append(totalPrice);
+          }
+
+          if (hotel.nights != null) {
+            let nights = document.createElement("p");
+
+            nights.textContent = "Nights: " + hotel.nights;
+
+            hotelDiv.append(nights);
+          }
+
+          hotelResults.append(hotelDiv);
         }
       }
     })

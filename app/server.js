@@ -268,6 +268,112 @@ app.get("/api/trips/:tripId/flights", (req, res) => {
     });
 });
 
+app.get("/api/trips/:tripId/hotels", (req, res) => {
+  let tripId = req.params.tripId;
+  let guests = Number(req.query.guests);
+
+  if (guests < 1) {
+    res.status(400);
+    res.json({
+      error: "Invalid hotel search",
+    });
+    return;
+  }
+
+  pool
+    .query(
+      `SELECT id, trip_name, destination, start_date, end_date
+    FROM trips
+    WHERE id = $1`,
+      [tripId],
+    )
+    .then((result) => {
+      if (result.rows.length === 0) {
+        res.status(404);
+        res.json({
+          error: "Trip not found",
+        });
+        return;
+      }
+
+      let trip = result.rows[0];
+
+      let startDate = formatDate(trip.start_date);
+      let endDate = formatDate(trip.end_date);
+
+      return axios({
+        method: "get",
+        url: "https://api.stayingapi.com/v1/search",
+        headers: {
+          Authorization: "Bearer " + env["stay_api_key"],
+        },
+        params: {
+          location: trip.destination,
+          checkIn: startDate,
+          checkOut: endDate,
+          adults: guests,
+          limit: 10,
+        },
+      });
+    })
+    .then((response) => {
+      if (!response) {
+        return;
+      }
+
+      let results = response.data.data;
+      let hotels = [];
+
+      for (let i = 0; i < results.length; i++) {
+        let result = results[i];
+
+        let hotel = {
+          id: result.id,
+          name: result.name,
+          platform: result.platform,
+          property_type: result.propertyType,
+          star_rating: result.starRating,
+          guest_rating: result.guestRating,
+          rating_scale: result.ratingScale,
+          city: null,
+          nightly_price: null,
+          total_price: null,
+          currency: null,
+          nights: null,
+        };
+
+        if (result.location) {
+          hotel.city = result.location.city;
+        }
+
+        if (result.price) {
+          hotel.nightly_price = result.price.nightlyPrice;
+          hotel.total_price = result.price.totalPrice;
+          hotel.currency = result.price.currency;
+          hotel.nights = result.price.nights;
+        }
+
+        hotels.push(hotel);
+      }
+
+      res.json({
+        hotels: hotels,
+      });
+    })
+    .catch((error) => {
+      if (error.response) {
+        console.log(error.response.data);
+      } else {
+        console.log(error);
+      }
+
+      res.status(500);
+      res.json({
+        error: "Unable to search hotels",
+      });
+    });
+});
+
 app.listen(port, hostname, () => {
   console.log(`Listening at: http://${hostname}:${port}`);
 });
