@@ -12,6 +12,38 @@ let searchButton = document.getElementById("search-flights");
 let message = document.getElementById("message");
 let flightResults = document.getElementById("flight-results");
 
+function formatTime(dateTime) {
+  let time = dateTime.substring(11, 16);
+
+  let hour = Number(time.substring(0, 2));
+  let minute = time.substring(3, 5);
+
+  let ending = "AM";
+
+  if (hour >= 12) {
+    ending = "PM";
+  }
+
+  if (hour > 12) {
+    hour = hour - 12;
+  }
+
+  if (hour == 0) {
+    hour = 12;
+  }
+
+  return hour + ":" + minute + " " + ending;
+}
+
+function formatDuration(duration) {
+  let value = duration.substring(2);
+
+  value = value.replace("H", "h ");
+  value = value.replace("M", "m");
+
+  return value;
+}
+
 fetch("/api/trips/" + tripId)
   .then((response) => {
     return response.json();
@@ -69,31 +101,71 @@ searchButton.addEventListener("click", () => {
           flightDiv.append(price);
 
           if (flight.outbound != null) {
-            let outbound = document.createElement("p");
+            let outboundTitle = document.createElement("h4");
+            outboundTitle.textContent = "Outbound";
 
-            outbound.textContent =
-              "Outbound: " +
-              flight.outbound.origin +
-              " to " +
-              flight.outbound.destination +
-              " - " +
-              flight.outbound.departing_at;
+            let outboundRoute = document.createElement("p");
+            outboundRoute.textContent =
+              flight.outbound.origin + " to " + flight.outbound.destination;
 
-            flightDiv.append(outbound);
+            let outboundTimes = document.createElement("p");
+            outboundTimes.textContent =
+              "Depart: " +
+              formatTime(flight.outbound.departing_at) +
+              " | Arrive: " +
+              formatTime(flight.outbound.arriving_at);
+
+            let outboundInfo = document.createElement("p");
+
+            if (flight.outbound.stops == 0) {
+              outboundInfo.textContent =
+                formatDuration(flight.outbound.duration) + " | Nonstop";
+            } else {
+              outboundInfo.textContent =
+                formatDuration(flight.outbound.duration) +
+                " | " +
+                flight.outbound.stops +
+                " stop(s)";
+            }
+
+            flightDiv.append(outboundTitle);
+            flightDiv.append(outboundRoute);
+            flightDiv.append(outboundTimes);
+            flightDiv.append(outboundInfo);
           }
 
           if (flight.returning != null) {
-            let returning = document.createElement("p");
+            let returnTitle = document.createElement("h4");
+            returnTitle.textContent = "Return";
 
-            returning.textContent =
-              "Return: " +
-              flight.returning.origin +
-              " to " +
-              flight.returning.destination +
-              " - " +
-              flight.returning.departing_at;
+            let returnRoute = document.createElement("p");
+            returnRoute.textContent =
+              flight.returning.origin + " to " + flight.returning.destination;
 
-            flightDiv.append(returning);
+            let returnTimes = document.createElement("p");
+            returnTimes.textContent =
+              "Depart: " +
+              formatTime(flight.returning.departing_at) +
+              " | Arrive: " +
+              formatTime(flight.returning.arriving_at);
+
+            let returnInfo = document.createElement("p");
+
+            if (flight.returning.stops == 0) {
+              returnInfo.textContent =
+                formatDuration(flight.returning.duration) + " | Nonstop";
+            } else {
+              returnInfo.textContent =
+                formatDuration(flight.returning.duration) +
+                " | " +
+                flight.returning.stops +
+                " stop(s)";
+            }
+
+            flightDiv.append(returnTitle);
+            flightDiv.append(returnRoute);
+            flightDiv.append(returnTimes);
+            flightDiv.append(returnInfo);
           }
 
           flightResults.append(flightDiv);
