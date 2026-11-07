@@ -3,44 +3,80 @@
 <head>
 	<meta charset="utf-8">
 	<title>Create Trip</title>
+	<link rel="stylesheet" href="createTripPage.css">
 </head>
 <body>
-	<h1> Create Trip Page </h1>
+	<div id="createTripSection">
+		<h1> Create Trip Framework Section </h1>
 
-	<div>
-		<label for="eventName">Trip Name:</label>
-		<input id="eventName" type="text" name="eventName">
-	</div>
-	<div>
-		<label for="costName">Destination Name:</label>
-		<input id="costName" type="text" name="costName">
-	</div>
-	<div>
-		<label for="startDate">Start Date:</label>
-		<input id="startDate" type="text" name="startDate">
-	</div>
-	<div>
-		<label for="endDate">End Date:</label>
-		<input id="endDate" type="text" name="endDate">
-	</div>
-	<div>
-		<label for="initalBudget">Total Budget:</label>
-		<input id="endDate" type="text" name="endDate">
-	</div>
-	<div>
-		<label for="groupMembers"> Search Group Members: </label>
-		<input id="groupMembers" type="text" name="endDate">
-		<button id="addGroupMember"> Add Group Member </button>
+		<div>
+			<label for="tripName">Trip Name:</label>
+			<input id="tripName" type="text" name="tripName">
+		</div>
+		<div>
+			<label for="startDate">Start Date:</label>
+			<input id="startDate" type="text" name="startDate">
+		</div>
+		<div>
+			<label for="endDate">End Date:</label>
+			<input id="endDate" type="text" name="endDate">
+		</div>
+		<div>
+			<label for="initalBudget">Initial Budget:</label>
+			<input id="initialBudget" type="text" name="initialBudget">
+		</div>
+		<div>
+			<label for="groupMembers"> Search Group Members: </label>
+			<input id="groupMembers" type="text" name="endDate">
+			<button id="addGroupMember"> Add Group Member </button>
+		</div>
+
+		<!-- This is where the table should be when you add members --!>
+		<!-- You should be able to delete too..., so a button per row? !-->
+		<table>
+			<tbody id="addedFriends">
+			</tbody>
+		</table>
+
+		<button id="submitTripButton">Create Trip</button>
+
 	</div>
 
-	<!-- This is where the table should be when you add members --!>
-	<!-- You should be able to delete too..., so a button per row? !-->
-	<table>
-		<tbody id="addedFriends">
-		</tbody>
-	</table>
+	<div id="addEventsSection" class="grayed-out-container">
+		<h1> Add Events to Trip Section </h1>
+		<div>
+			<label for="costName">Cost Name:</label>
+			<input id="costName" type="text" name="costName">
+		</div>
+		<div> <!-- This should be a select -->
+			<label for="category">Category:</label>
+			<input id="category" type="text" name="category">
+		</div>
+		<div>
+			<label for="eventStartDate">Start Date:</label>
+			<input id="eventStartDate" type="text" name="eventStartDate">
+		</div>
+		<div>
+			<label for="eventEndDate">End Date:</label>
+			<input id="eventEndDate" type="text" name="eventEndDate">
+		</div>
+		<div>
+			<label for="location">Location:</label>
+			<input id="location" type="text" name="location">
+		</div>
+		<div>
+			<label for="totalCost">Total Cost:</label>
+			<input id="totalCost" type="text" name="totalCost">
+		</div>
+		<button id="addEvent"> Add Event </button>
 
-	<button id="submit">Create Trip</button>
+		<table>
+			<thead> 
+			</thead>
+			<tbody id="currentEventsTable">
+			</tbody>
+		</table>
+	</div>
 
 	<div id="message"> </div>
 

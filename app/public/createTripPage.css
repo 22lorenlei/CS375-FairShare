@@ -1,0 +1,6 @@
+.grayed-out-container {
+	background-color: gray;
+	opacity: 0.5;
+	pointer-events: none;
+	user-select: none;
+}

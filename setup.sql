@@ -4,37 +4,45 @@ CREATE DATABASE project;
 -- Purely for testing
 DROP TABLE IF EXISTS userResponsibility;
 DROP TABLE IF EXISTS events;
-DROP TABLE IF EXISTS userEvents;
+DROP TABLE IF EXISTS userTrips;
 DROP TABLE IF EXISTS friends;
+DROP TABLE IF EXISTS trips;
 
 CREATE TABLE userResponsibility (
-	event_name VARCHAR(100),
+	trip_name VARCHAR(100),
 	cost_name VARCHAR(100),
 	category VARCHAR(100),
 	username VARCHAR(100),
 	price_responsible FLOAT,
 	price_paid FLOAT,
 
-	PRIMARY KEY (event_name, cost_name, category, username)
+	PRIMARY KEY (trip_name, cost_name, category, username)
 );
 CREATE TABLE events (
-	event_name VARCHAR(100),
+	trip_name VARCHAR(100),
 	cost_name VARCHAR(100),
 	category VARCHAR(100),
 	total_price FLOAT,
 	start_date DATE, -- DATE is like 11-22-3333. Postgres can take this format
 	end_date DATE,
-	destination VARCHAR(100),
+	location VARCHAR(100),
+
+	PRIMARY KEY (trip_name, cost_name, category)
+);
+CREATE TABLE trips (
+	trip_name VARCHAR(100),
+	start_date DATE,
+	end_date DATE,
 	initial_budget FLOAT,
 
-	PRIMARY KEY (event_name, cost_name, category)
+	PRIMARY KEY (trip_name)
 );
-CREATE TABLE userEvents (
-	event_name VARCHAR(100),
+CREATE TABLE userTrips (
+	trip_name VARCHAR(100),
 	username VARCHAR(100),
 	owner BOOLEAN,
 
-	PRIMARY KEY (event_name, username)
+	PRIMARY KEY (trip_name, username)
 );
 
 -- dummy table for friend circle
