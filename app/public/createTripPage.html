@@ -78,6 +78,36 @@
 		</table>
 	</div>
 
+	<dialog id="editEventModal">
+		<h1> Edit Events </h1>
+		<div>
+			<label for="editCostName"> Cost Name: </label>
+			<input id="editCostName" type="text" name="editCostName">
+		</div>
+		<div> <!-- This should be a select -->
+			<label for="editCategory">Category:</label>
+			<input id="editCategory" type="text" name="editCategory">
+		</div>
+		<div>
+			<label for="editEventStartDate">Start Date:</label>
+			<input id="editEventStartDate" type="text" name="editEventStartDate">
+		</div>
+		<div>
+			<label for="editEventEndDate">End Date:</label>
+			<input id="editEventEndDate" type="text" name="editEventEndDate">
+		</div>
+		<div>
+			<label for="editLocation">Location:</label>
+			<input id="editLocation" type="text" name="editLocation">
+		</div>
+		<div>
+			<label for="editTotalCost">Total Cost:</label>
+			<input id="editTotalCost" type="text" name="editTotalCost">
+		</div>
+		<button id="editEvent"> Edit Event </button>
+		<button id="closeEditEvent"> Exit </button>
+	</dialog>
+
 	<div id="message"> </div>
 
 	<script src="createTripPage.js"> </script>

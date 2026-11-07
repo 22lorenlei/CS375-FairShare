@@ -75,6 +75,36 @@ app.post("/deleteGroupMember", async (req, res) => {
 	}
 });
 
+app.post("/deleteEvent", async (req, res) => {
+	let tripName = req.body.tripName;
+	let costName = req.body.costName;
+	let category = req.body.category;
+
+	let deleteCommand = 'DELETE FROM events WHERE (trip_name=($1) AND cost_name=($2) AND category=($3))';
+	let deleteValues = [tripName, costName, category];
+
+	console.log(deleteValues);
+
+	try {
+		await pool.query(deleteCommand, deleteValues);
+	} catch (error) {
+		console.log("DB Error:", error);
+	}
+
+	let selectCommand = 'SELECT * FROM events WHERE trip_name=($1)';
+	let selectValues = [tripName];
+	try {
+		let selectResult = await pool.query(selectCommand, selectValues);
+		res.status(200).json({
+			"status": "OK",
+			"result": selectResult
+		});
+	} catch (error) {
+		console.log("DB Error:", error);
+		res.status(500).send({"status": "ERROR"});
+	}
+});
+
 app.post("/createTrip", async (req, res) => {
 	let tripName = req.body.tripName;
         let startDate = req.body.startDate;
@@ -98,6 +128,25 @@ app.post("/createTrip", async (req, res) => {
 		res.status(200).json({"status": "OK"});
 	} catch (error) {
 		console.log("DB Error:", error)
+		res.status(500).json({"status": "ERROR"});
+	}
+});
+
+app.post("/editEvent", async (req, res) => {
+	let tripName = req.body.tripName;
+	let costName = req.body.costName;
+	let category = req.body.category;
+
+	let selectCommand = 'SELECT * FROM events WHERE (trip_name=($1) AND costName=($2) AND category=($3))';
+	let selectValues = [tripName, costName, category];
+
+	try {
+		let result = await pool.query(selectCommand, selectValues);
+		res.status(200).json({
+			"status": "OK",
+			"result": result});
+	} catch (error) {
+		console.log("DB Error:", error);
 		res.status(500).json({"status": "ERROR"});
 	}
 });
@@ -128,7 +177,7 @@ app.post("/addEvent", async (req, res) => {
 		let result = await pool.query(selectCommand, selectValues);
 		// Maybe have a json {status: ok, result: result}
 		console.log("OK FINE");
-		res.status(200).json({
+		res.status(200).json({			
 			"status": "OK",
 		 	"result": result	
 		});

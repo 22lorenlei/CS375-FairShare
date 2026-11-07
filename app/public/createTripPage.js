@@ -20,6 +20,18 @@ let addEventButton = document.getElementById("addEvent");
 let locationInput = document.getElementById("location");
 let currentEventsTable = document.getElementById("currentEventsTable");
 
+let editCostNameInput = document.getElementById("editCostName");
+let editCategoryInput = document.getElementById("editCategory");
+let editEventStartDateInput = document.getElementById("editEventStartDate");
+let editEventEndDateInput = document.getElementById("editEventEndDate");
+let editTotalCostInput = document.getElementById("editTotalCost");
+let editAddEventButton = document.getElementById("editAddEvent");
+let editLocationInput = document.getElementById("editLocation");
+
+let editEventButton = document.getElementById("editEvent");
+let closeEditEventButton = document.getElementById("closeEditEvent");
+let editEventModal = document.getElementById("editEventModal");
+
 /*
 Somehow we must be able to get the trip name first...
 Unless..., we have a unique temporary trip name with a specific number as a dummy placeholder
@@ -29,6 +41,10 @@ like... dummyValue<numberOfTripsInDB>
 
 let createTripStep = true;
 let addEventsStep = false;
+
+function closeEditEventModal() {
+	editEventModal.close();
+}
 
 function addEvent() {
 	let costName = costNameInput.value;
@@ -58,14 +74,15 @@ function addEvent() {
 		return response.json();
 	}).then(body => {
 		console.log("Body:", body);
+
 		if (body.status === "OK") {
+			currentEventsTable.textContent = "";
 			costNameInput.value = "";
 			categoryInput.value = "";
 			eventStartDateInput.value = "";
 			eventEndDateInput.value = "";
 			totalCostInput.value = "";
 			locationInput.value = "";
-			tripNameInput.value = "";
 
 			let contents = body.result.rows;			
 			for (let content of contents) {
@@ -76,6 +93,117 @@ function addEvent() {
 					td.textContent = value;
 					tr.append(td);
 				}
+				let tdDelete = document.createElement("td");
+				let deleteButton = document.createElement("button");
+				deleteButton.textContent = "Delete";
+				deleteButton.addEventListener('click', () => {
+					deleteEvent(content["trip_name"], content["cost_name"], content["category"]);
+				});
+				tdDelete.append(deleteButton);
+				tr.append(tdDelete);
+				
+				/*
+				let tdEdit = document.createElement("td");
+				let editButton = document.createElement("button");
+				editButton.textContent = "Edit";
+				editButton.addEventListener('click', () => {
+					editEvent(tripName, costName, category);
+				});
+				tr.append(tdEdit);
+				*/
+
+				currentEventsTable.append(tr);
+			}
+		} else {
+			console.log(body.status);
+		}
+	});
+}
+
+function editEvent(tripName, costName, category) {
+	editEventModal.showModal();
+	fetch("/editEvent", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify({
+			tripName: tripName,
+			costName: costName,
+			category: category
+		}),
+	}).then(response => {
+		console.log("Response:", response);
+		return response.json();
+	}).then(body => {
+		console.log("Body:", body);
+		if (body.status === "OK") {
+			let contents = body.rows;
+			let content = contents[0];
+			
+			let costName = content.cost_name;
+			let category = content.category;
+			let totalPrice = content.total_price;
+			let startDate = content.start_date;
+			let endDate = content.end_date;
+			let locationName = content["location"];
+
+			editCostNameInput.value = costName;
+			editCategoryInput.value = category;
+			editEventStartDateInput.value = startDate;
+			editEventEndDateInput.value = endDate;
+			editTotalCostInput.value = totalPrice;
+			editLocationInput.value = locationName;
+		}
+	});
+}
+
+function deleteEvent(tripName, costName, category) {
+	fetch("/deleteEvent", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			tripName: tripName,
+			costName: costName,
+			category: category,
+		}),
+	}).then(response => {
+		console.log("Response:", response);
+		return response.json();
+	}).then(body => {
+		console.log("Body:", body);
+		if (body.status === "OK") {
+			currentEventsTable.textContent = "";
+			let contents = body.result.rows;			
+			for (let content of contents) {
+				console.log(content);
+				let tr = document.createElement("tr");
+				for (let [key, value] of Object.entries(content)) {
+					let td = document.createElement("td");
+					td.textContent = value;
+					tr.append(td);
+				}
+				let tdDelete = document.createElement("td");
+				let deleteButton = document.createElement("button");
+				deleteButton.textContent = "Delete";
+				deleteButton.addEventListener('click', () => {
+					deleteEvent(content["trip_name"], content["cost_name"], content["category"]);
+				});
+				tdDelete.append(deleteButton);
+				tr.append(tdDelete);
+			
+				/*
+				let tdEdit = document.createElement("td");
+				let editButton = document.createElement("button");
+				editButton.textContent = "Edit";
+				editButton.addEventListener('click', () => {
+					editEvent(tripName, costName, category);
+				});
+				tr.append(tdEdit);
+				*/
+
 				currentEventsTable.append(tr);
 			}
 		} else {
@@ -207,3 +335,4 @@ function deleteGroupMember(tripName, username) {
 addGroupMemberButton.addEventListener("click", addNewGroupMember);
 submitTripButton.addEventListener("click", createTripSubmit);
 addEventButton.addEventListener("click", addEvent);
+closeEditEventButton.addEventListener("click", closeEditEventModal);

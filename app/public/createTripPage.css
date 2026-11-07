@@ -4,3 +4,22 @@
 	pointer-events: none;
 	user-select: none;
 }
+
+table {
+	border-collapse: collapse;
+}
+
+th, td {
+	border: 1px solid black;
+}
+
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+dialog {
+    padding: 20px;
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
