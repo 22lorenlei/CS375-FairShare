@@ -1,4 +1,4 @@
-let tripId = 1;
+let tripId = 2;
 
 let tripName = document.getElementById("trip-name");
 let tripDestination = document.getElementById("trip-destination");
@@ -17,6 +17,11 @@ let searchHotelsButton = document.getElementById("search-hotels");
 
 let hotelMessage = document.getElementById("hotel-message");
 let hotelResults = document.getElementById("hotel-results");
+
+let searchActivitiesButton = document.getElementById("search-activities");
+
+let activityMessage = document.getElementById("activity-message");
+let activityResults = document.getElementById("activity-results");
 
 function formatTime(dateTime) {
   let time = dateTime.substring(11, 16);
@@ -257,6 +262,81 @@ searchHotelsButton.addEventListener("click", () => {
           }
 
           hotelResults.append(hotelDiv);
+        }
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+});
+
+searchActivitiesButton.addEventListener("click", () => {
+  activityMessage.textContent = "";
+  activityResults.textContent = "";
+
+  let url = "/api/trips/" + tripId + "/activities";
+
+  fetch(url)
+    .then((response) => {
+      return response.json();
+    })
+    .then((body) => {
+      if (body.error) {
+        activityMessage.textContent = body.error;
+      } else if (body.activities.length == 0) {
+        activityMessage.textContent = "No activities found";
+      } else {
+        for (let i = 0; i < body.activities.length; i++) {
+          let activity = body.activities[i];
+
+          let activityDiv = document.createElement("div");
+
+          let title = document.createElement("h3");
+          title.textContent = activity.title;
+
+          activityDiv.append(title);
+
+          if (activity.date != null) {
+            let date = document.createElement("p");
+
+            date.textContent = "Date: " + activity.date;
+
+            activityDiv.append(date);
+          }
+
+          if (activity.time != null) {
+            let time = document.createElement("p");
+
+            time.textContent = "Time: " + activity.time;
+
+            activityDiv.append(time);
+          }
+
+          if (activity.venue != null) {
+            let venue = document.createElement("p");
+
+            venue.textContent = "Venue: " + activity.venue;
+
+            activityDiv.append(venue);
+          }
+
+          if (activity.address != null) {
+            let address = document.createElement("p");
+
+            address.textContent = "Location: " + activity.address;
+
+            activityDiv.append(address);
+          }
+
+          if (activity.price != null) {
+            let price = document.createElement("p");
+
+            price.textContent = "Price: " + activity.price;
+
+            activityDiv.append(price);
+          }
+
+          activityResults.append(activityDiv);
         }
       }
     })

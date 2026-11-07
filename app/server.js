@@ -374,6 +374,127 @@ app.get("/api/trips/:tripId/hotels", (req, res) => {
     });
 });
 
+app.get("/api/trips/:tripId/activities", (req, res) => {
+  let tripId = req.params.tripId;
+
+  pool
+    .query(
+      `SELECT id, trip_name, destination, start_date, end_date
+    FROM trips
+    WHERE id = $1`,
+      [tripId],
+    )
+    .then((result) => {
+      if (result.rows.length === 0) {
+        res.status(404);
+        res.json({
+          error: "Trip not found",
+        });
+        return;
+      }
+
+      let trip = result.rows[0];
+
+      let city = trip.destination.split(",")[0].trim();
+
+      let search = "events in " + city + " this weekend";
+
+      let searchLocation = trip.destination + ", United States";
+
+      return axios({
+        method: "get",
+        url: "https://serpapi.com/search",
+        params: {
+          engine: "google",
+          q: search,
+          location: searchLocation,
+          api_key: env["serpapi_key"],
+        },
+      });
+    })
+    .then((response) => {
+      if (!response) {
+        return;
+      }
+
+      let results = response.data.events_results;
+      let activities = [];
+
+      if (!results) {
+        res.json({
+          activities: activities,
+        });
+        return;
+      }
+
+      for (let i = 0; i < results.length; i++) {
+        let result = results[i];
+
+        let activity = {
+          title: result.title,
+          date: null,
+          time: null,
+          venue: null,
+          address: null,
+          price: null,
+          event_token: result.event_token,
+        };
+
+        if (result.date) {
+          if (typeof result.date === "string") {
+            activity.date = result.date;
+          } else if (result.date.start_date) {
+            activity.date = result.date.start_date;
+          }
+        }
+
+        if (result.time) {
+          activity.time = result.time;
+        }
+
+        if (result.venue) {
+          if (typeof result.venue === "string") {
+            activity.venue = result.venue;
+          } else if (result.venue.name) {
+            activity.venue = result.venue.name;
+          }
+        } else if (result.type) {
+          activity.venue = result.type;
+        }
+
+        if (result.address) {
+          if (Array.isArray(result.address)) {
+            activity.address = result.address.join(", ");
+          } else {
+            activity.address = result.address;
+          }
+        }
+
+        if (result.price) {
+          activity.price = result.price;
+        }
+
+        activities.push(activity);
+      }
+
+      res.json({
+        activities: activities,
+      });
+    })
+    .catch((error) => {
+      if (error.response) {
+        console.log(error.response.data);
+      } else {
+        console.log(error);
+      }
+
+      res.status(500);
+      res.json({
+        error: "Unable to search activities",
+      });
+    });
+});
+
 app.listen(port, hostname, () => {
   console.log(`Listening at: http://${hostname}:${port}`);
 });
