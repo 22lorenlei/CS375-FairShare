@@ -1,12 +1,13 @@
-let username = document.getElementById("username");
+let email = document.getElementById("email");
 let password = document.getElementById("password");
-let button = document.getElementById("submit");
+let form = document.getElementById("login-form");
 
-button.addEventListener("click", () => {
-    fetch(`/login?username=${username.value}&password=${password.value}`).then((response) => {
+form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    fetch(`/login?email=${email.value}&password=${password.value}`).then((response) => {
         return response.json();
     }).then((body) => {
-        console.log(body.message);
         document.getElementById("message").textContent = body.message;
     }).catch((error) => {
         console.log(error);

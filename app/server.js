@@ -2,6 +2,7 @@
 const express = require("express");
 const pg = require("pg");
 const path = require("path");
+const bcrypt = require("bcrypt");
 
 const app = express();
 
@@ -35,13 +36,13 @@ app.post("/users/select", (req, res) => {
     `;
 
     pool.query(sql, [username.trim()])
-    .then(function (result) {
-        res.status(200).json(result.rows[0]);
-    })
-    .catch(function (error) {
-        console.log(error);
-        res.status(500).end();
-    });
+        .then(function (result) {
+            res.status(200).json(result.rows[0]);
+        })
+        .catch(function (error) {
+            console.log(error);
+            res.status(500).end();
+        });
 });
 
 
@@ -120,51 +121,83 @@ app.get("/groups", (req, res) => {
     `;
 
     pool.query(sql, [userId])
-    .then(function (result) {
-        res.status(200).json({ rows: result.rows });
-    })
-    .catch(function (error) {
-        console.log(error);
-        res.status(500).end();
-    });
+        .then(function (result) {
+            res.status(200).json({ rows: result.rows });
+        })
+        .catch(function (error) {
+            console.log(error);
+            res.status(500).end();
+        });
 });
 
 app.get("/login", (req, res) => {
-    let username = req.query.username;
+    let email = req.query.email;
     let password = req.query.password;
 
-    pool.query(`SELECT * FROM users WHERE email = $1 AND password = $2`, [username, password]).then((result) => {
+    pool.query(`SELECT * FROM users WHERE email = $1`, [email]).then((result) => {
         if (result.rows.length === 0) {
-            res.status(200).send({message: "Account doesn't exist"});
+            res.status(200).send({ message: "Account doesn't exist" });
         } else {
-            res.status(200).json({message: "Logged in!"});
+            // grabs user info
+            let user = result.rows[0];
+
+            // compare inputted password with stored hashed password
+            bcrypt.compare(password, user.password).then((isMatch) => {
+                if (isMatch) {
+                    res.status(200).json({ message: "Logged in!" });
+                } else {
+                    res.status(400).json({ message: "Incorrect password!" });
+                }
+            });
         }
 
     }).catch((error) => {
         res.status(400).send(error);
     });
-    
+
 });
 
 app.post("/register", (req, res) => {
-    if (!Object.hasOwn(req.body, "username") || !Object.hasOwn(req.body, "password")) {
-        res.sendStatus(400)
-    }
 
-    console.log(req.body);
-    /*
-    pool.query(
-        `INSERT INTO users(username, password)
-        VALUES($1, $2)
-        RETURNING *`,
-        [req.body.username, req.body.password]
-    ).then((result) => {
-        console.log("Inserted: ");
-        console.log(result.rows);
-    }).catch((error) => {
-        console.log(error)
+    const { email, username, password } = req.body;
+
+    // Front end already covers these, this if statement is for curl requests.
+    if (typeof email !== "string" || typeof username !== "string" || typeof password !== "string" || username.length < 3 || username.length > 50 || username.includes(" ") || email.length < 5 || email.length > 100 || email.includes(" ") || !email.includes("@") || !email.includes(".") || password.length < 8 || password.length > 64) {
+        return res.status(400).json({
+            message: "Invalid Input"
+        });
+    } 
+
+
+    bcrypt.hash(password, 10).then((hashedPassword) =>  { 
+        pool.query(
+        `INSERT INTO users(username, email, password)
+            VALUES($1, $2, $3)
+            RETURNING *`,
+        [username, email, hashedPassword]
+        ).then((result) => {
+            return res.status(200).json({
+                message: "Account Successfully Created!"
+            });
+        }).catch((error) => {
+            console.log(error)
+            if (error.detail?.includes('email')) {
+            return res.status(400).json({
+                message: "Account with this email already exists!"
+                }) 
+            }
+            else if (error.detail?.includes('username')) {
+                return res.status(400).json({
+                message: "Account with this username already exists!"
+                }) 
+            }
+            else {
+                return res.status(400).json({
+                message: "Database side error!"
+            })
+            }
+        });
     });
-    */
 });
 
 

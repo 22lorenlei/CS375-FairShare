@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/22lorenlei/CS375-FairShare#readme",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "express": "^5.3.0",
     "pg": "^8.23.1"
   }
