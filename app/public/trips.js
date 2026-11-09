@@ -1,9 +1,7 @@
 
-let currentUser = null;
 let allTrips = [];
 let selectedTab = "active";
 
-let selectButton = document.getElementById("selectUser");
 let openButton = document.getElementById("openModal");
 let closeButton = document.getElementById("closeModal");
 let tripModal = document.getElementById("tripModal");
@@ -13,7 +11,6 @@ let tripsDiv = document.getElementById("trips");
 let activeTab = document.getElementById("activeTab");
 let pastTab = document.getElementById("pastTab");
 
-let userMessage = document.getElementById("userMessage");
 let createMessage = document.getElementById("createMessage");
 
 let membersModal = document.getElementById("membersModal");
@@ -36,47 +33,43 @@ fetch("/navbar.html")
     let navbar = documentCopy.querySelector("nav");
 
     document.getElementById("navbar").appendChild(navbar);
+    document.getElementById("logout").addEventListener("click", function () {
+        let button = this;
+        button.disabled = true;
+        fetch("/logout", { method: "POST" })
+        .then(function (response) {
+            if (!response.ok) throw new Error("Could not log out. Please try again.");
+            window.location.replace("/login.html");
+        })
+        .catch(function (error) {
+            tripsDiv.textContent = error.message;
+            button.disabled = false;
+        });
+    });
 })
 .catch(function (error) {
     console.log(error);
 });
 
 
-// Select or create a temporary user
-selectButton.addEventListener("click", function () {
-    let username = document.getElementById("currentUsername").value.trim();
-
-    if (username === "") {
-        userMessage.textContent = "Please enter a username";
-        return;
-    }
-
-    fetch("/users/select", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username: username })
-    })
-    .then(function (response) {
-        if (!response.ok) {
-            throw new Error("Could not select user");
-        }
-        return response.json();
-    })
-    .then(function (data) {
-        currentUser = data.id;
-        userMessage.textContent = "Current user: " + data.username;
-        openButton.disabled = false;
-
-        loadTrips();
-    })
-    .catch(function (error) {
-        console.log(error);
-        userMessage.textContent = "Could not select user";
-    });
+// Load trips for the signed-in user.
+fetch("/auth/me")
+.then(function (response) {
+    checkSession(response);
+    if (!response.ok) throw new Error("Could not load account");
+    openButton.disabled = false;
+    loadTrips();
+})
+.catch(function (error) {
+    tripsDiv.textContent = error.message;
 });
 
+function checkSession(response) {
+    if (response.status === 401) {
+        window.location.replace("/login.html");
+        throw new Error("Please log in again");
+    }
+}
 
 // Open create trip modal
 openButton.addEventListener("click", function () {
@@ -144,11 +137,11 @@ tripForm.addEventListener("submit", function (event) {
             startDate: startDate,
             endDate: endDate,
             budget: budget,
-            members: members,
-            userId: currentUser
+            members: members
         })
     })
     .then(function (response) {
+        checkSession(response);
         if (!response.ok) {
             return response.json().then(function (data) {
                 throw new Error(data.error || "Could not create trip");
@@ -172,8 +165,9 @@ tripForm.addEventListener("submit", function (event) {
 
 // Load trips from database
 function loadTrips() {
-    fetch("/trips?userId=" + currentUser)
+    fetch("/trips")
     .then(function (response) {
+        checkSession(response);
         if (!response.ok) {
             throw new Error("Could not load trips");
         }
@@ -324,11 +318,11 @@ membersForm.addEventListener("submit", function (event) {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            username: username,
-            userId: currentUser
+            username: username
         })
     })
     .then(function (response) {
+        checkSession(response);
         if (!response.ok) {
             return response.json().then(function (data) {
                 throw new Error(data.error || "Could not add member");

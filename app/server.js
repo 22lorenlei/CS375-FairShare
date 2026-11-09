@@ -2,6 +2,9 @@
 const express = require("express");
 const pg = require("pg");
 const path = require("path");
+const bcrypt = require("bcrypt");
+const session = require("express-session");
+const crypto = require("crypto");
 
 const app = express();
 
@@ -12,47 +15,134 @@ const env = require("../env.json");
 const pool = new pg.Pool(env);
 
 app.use(express.json());
+// Remember the logged-in user on the server.
+app.use(session({
+    secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex"),
+    resave: false,
+    saveUninitialized: false,
+    cookie: { httpOnly: true, sameSite: "lax", maxAge: 24 * 60 * 60 * 1000 }
+}));
+
+function requireLogin(req, res, next) {
+    if (!req.session.user) {
+        return res.status(401).json({ error: "Please log in" });
+    }
+    res.set("Cache-Control", "no-store");
+    next();
+}
+
+app.get("/", (req, res) => {
+    res.redirect(req.session.user ? "/trips.html" : "/login.html");
+});
+
+app.get("/trips.html", (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    if (!req.session.user) return res.redirect("/login.html");
+    next();
+});
 app.use(express.static(path.join(__dirname, "public")));
 
-
-// Select or create user for local development
-app.post("/users/select", (req, res) => {
-    let username = req.body.username;
-
-    if (typeof username !== "string" ||
-        username.trim().length === 0 ||
-        username.length > 50) {
-        res.status(400).json({ error: "Invalid username" });
-        return;
-    }
-
-    let sql = `
-        INSERT INTO users (username)
-        VALUES ($1)
-        ON CONFLICT (username)
-        DO UPDATE SET username = EXCLUDED.username
-        RETURNING id, username
-    `;
-
-    pool.query(sql, [username.trim()])
-    .then(function (result) {
-        res.status(200).json(result.rows[0]);
-    })
-    .catch(function (error) {
-        console.log(error);
-        res.status(500).json({ error: "Database error" });
+app.post("/logout", (req, res) => {
+    req.session.destroy((error) => {
+        if (error) return res.status(500).json({ error: "Could not log out" });
+        res.clearCookie("connect.sid");
+        res.json({ message: "Logged out" });
     });
 });
 
+app.get("/auth/me", requireLogin, (req, res) => {
+    res.json(req.session.user);
+});
+
+app.get("/login", (req, res) => {
+    let email = req.query.email;
+    let password = req.query.password;
+    res.set("Cache-Control", "no-store");
+
+    pool.query(`SELECT * FROM users WHERE email = $1`, [email]).then((result) => {
+        if (result.rows.length === 0) {
+            res.status(200).send({ message: "Account doesn't exist" });
+        } else {
+            // grabs user info
+            let user = result.rows[0];
+
+            // compare inputted password with stored hashed password
+            return bcrypt.compare(password, user.password).then((isMatch) => {
+                if (isMatch) {
+                    // Remember the user before opening My Trips.
+                    req.session.regenerate((error) => {
+                        if (error) return res.status(500).json({ message: "Could not log in" });
+                        req.session.user = { id: user.id, username: user.username };
+                        req.session.save((error) => {
+                            if (error) return res.status(500).json({ message: "Could not log in" });
+                            res.status(200).json({ message: "Logged in!", loggedIn: true });
+                        });
+                    });
+                } else {
+                    res.status(400).json({ message: "Incorrect password!" });
+                }
+            });
+        }
+
+    }).catch((error) => {
+        res.status(400).json({ message: "Could not log in" });
+    });
+
+});
+
+app.post("/register", (req, res) => {
+
+    const { email, username, password } = req.body;
+
+    // Front end already covers these, this if statement is for curl requests.
+    if (typeof email !== "string" || typeof username !== "string" || typeof password !== "string" || username.length < 3 || username.length > 50 || username.includes(" ") || email.length < 5 || email.length > 100 || email.includes(" ") || !email.includes("@") || !email.includes(".") || password.length < 8 || password.length > 64) {
+        return res.status(400).json({
+            message: "Invalid Input"
+        });
+    }
+
+
+    bcrypt.hash(password, 10).then((hashedPassword) =>  {
+        pool.query(
+        `INSERT INTO users(username, email, password)
+            VALUES($1, $2, $3)
+            RETURNING *`,
+        [username, email, hashedPassword]
+        ).then((result) => {
+            return res.status(200).json({
+                message: "Account Successfully Created!"
+            });
+        }).catch((error) => {
+            console.log(error)
+            if (error.detail?.includes('email')) {
+            return res.status(400).json({
+                message: "Account with this email already exists!"
+                })
+            }
+            else if (error.detail?.includes('username')) {
+                return res.status(400).json({
+                message: "Account with this username already exists!"
+                })
+            }
+            else {
+                return res.status(400).json({
+                message: "Database side error!"
+            })
+            }
+        });
+    });
+});
+
+
 // Create a new trip
-app.post("/trips", async (req, res) => {
+app.post("/trips", requireLogin, async (req, res) => {
     let name = req.body.name;
     let destination = req.body.destination;
     let startDate = req.body.startDate;
     let endDate = req.body.endDate;
     let budget = req.body.budget;
     let members = req.body.members;
-    let userId = req.body.userId;
+    let userId = req.session.user.id;
 
     if (typeof name !== "string" ||
         name.trim() === "" ||
@@ -183,8 +273,8 @@ app.post("/trips", async (req, res) => {
 });
 
 // Get trips for a user
-app.get("/trips", (req, res) => {
-    let userId = Number(req.query.userId);
+app.get("/trips", requireLogin, (req, res) => {
+    let userId = req.session.user.id;
 
     if (!Number.isInteger(userId) || userId < 1) {
         res.status(400).json({ error: "Invalid user" });
@@ -224,10 +314,10 @@ app.get("/trips", (req, res) => {
 });
 
 // Add a member to an existing trip
-app.post("/trips/:id/members", async (req, res) => {
+app.post("/trips/:id/members", requireLogin, async (req, res) => {
     let tripId = Number(req.params.id);
     let username = req.body.username;
-    let userId = req.body.userId;
+    let userId = req.session.user.id;
 
     if (!Number.isInteger(tripId) || tripId < 1 ||
         !Number.isInteger(userId) || userId < 1 ||

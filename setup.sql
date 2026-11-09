@@ -4,7 +4,9 @@ CREATE DATABASE fairshare;
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    password VARCHAR(255)
 );
 
 CREATE TABLE travel_groups (

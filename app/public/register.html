@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FairShare - Create Account</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+
+  <div class="auth-container">
+    <h1 class="brand-title">FairShare</h1>
+    <p class="brand-subtitle">Plan Trips. Share Expenses. Travel Together.</p>
+
+    <div class="tabs">
+      <a class="tab active">Register</a>
+      <!--<a href="register.html" class="tab">Sign Up</a>-->
+    </div>
+
+    <form id="register-form">
+
+        <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="you@example.com" required>
+        </div>
+
+        <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" pattern="^[a-zA-Z0-9_]+$" minlength="3" maxlength="20" required>
+        </div>
+
+        <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" pattern="^[a-zA-Z0-9_]+$" placeholder="••••••••" minlength="8" maxlength="64" required>
+        </div>
+
+        <div class="form-group">
+        <label for="password-confirmation">Confirm Password</label>
+        <input type="password" id="password-confirmation" placeholder="••••••••" required>
+        <p id="password-confirmation-error"></p> 
+        </div>
+
+        <div id="account-created"></div>
+
+        <button id="submit" type="submit">Create Account</button>
+
+    </form>
+
+    <div id="message"></div>
+
+    <p class="footer-text">
+      Already have an account? <a href="login.html">Log In</a>
+    </p>
+  </div>
+
+  <script src="register.js"></script>
+</body>
+</html>
