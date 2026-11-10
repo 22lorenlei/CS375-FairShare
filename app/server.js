@@ -2,7 +2,7 @@
 const express = require("express");
 const pg = require("pg");
 const path = require("path");
-const bcrypt = require("bcrypt");
+const argon2 = require("argon2");
 
 const app = express();
 
@@ -142,7 +142,7 @@ app.get("/login", (req, res) => {
             let user = result.rows[0];
 
             // compare inputted password with stored hashed password
-            bcrypt.compare(password, user.password).then((isMatch) => {
+            argon2.verify(password, user.password).then((isMatch) => {
                 if (isMatch) {
                     res.status(200).json({ message: "Logged in!" });
                 } else {
@@ -169,7 +169,7 @@ app.post("/register", (req, res) => {
     } 
 
 
-    bcrypt.hash(password, 10).then((hashedPassword) =>  { 
+    argon2.hash(password, 10).then((hashedPassword) =>  { 
         pool.query(
         `INSERT INTO users(username, email, password)
             VALUES($1, $2, $3)
