@@ -18,6 +18,10 @@ let closeMembersButton = document.getElementById("closeMembersModal");
 let membersForm = document.getElementById("membersForm");
 let membersMessage = document.getElementById("membersMessage");
 
+let addEventModal = document.getElementById("addEventModal");
+let closeAddEventModal = document.getElementById("closeAddEventModal");
+let addEventModalForm = document.getElementById("addEventForm");
+
 let selectedTripId = null;
 
 // Load navbar from separate HTML file
@@ -99,6 +103,11 @@ closeMembersButton.addEventListener("click", function () {
     membersModal.style.display = "none";
 });
 
+// Close Add Event modal with X button
+closeAddEventModal.addEventListener("click", function () {
+    addEventModal.style.display = "none";
+});
+
 // Create a new trip
 tripForm.addEventListener("submit", function (event) {
     event.preventDefault();
@@ -160,6 +169,58 @@ tripForm.addEventListener("submit", function (event) {
     .finally(function () {
         createButton.disabled = false;
     });
+});
+
+addEventModalForm.addEventListener("submit", function(event) {
+	event.preventDefault();
+
+	let eventName = document.getElementById("eventName");
+	let eventCategory = document.getElementById("eventCategory");
+	let eventTotalPrice = document.getElementById("eventTotalPrice");
+	let eventStartDate = document.getElementById("eventStartDate");
+	let eventEndDate = document.getElementById("eventEndDate");
+	let eventLocation = document.getElementById("eventLocation");
+
+	let addEventFeedback = document.getElementById("addEventFeedback");
+
+	if (eventEndDate < eventStartDate) {
+		addEventFeedback.textContent = "End date must be equal or after start date";		
+		return;
+	}
+
+	let createButton = document.getElementById("createTrip");
+	createButton.disabled = true;
+
+	fetch("/addEvent", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify({
+			eventName: eventName,
+			eventCategory: eventCategory,
+			eventTotalPrice: eventTotalPrice,
+			eventStartDate: eventStartDate,
+			eventEndDate: eventEndDate,
+			eventLocation: eventLocation
+		}),
+	}).then(function (response) {
+		checkSession(response);
+		if (!response.ok) {
+			return response.json().then(function (data) {
+				throw new Error(data.error || "Could not create trip");
+			});
+		}
+		return response.json();
+	}).then(function () {
+		addEventModalForm.reset();
+		addEventModal.style.display = "none";
+		loadTrips();
+	}).catch(function (error) {
+		addEventFeedback.textContent = error.message;
+	}).finally(function () {
+		createButton.disabled = false;
+	});
 });
 
 
@@ -254,6 +315,10 @@ function displayTrips() {
         let buttons = document.createElement("div");
         buttons.className = "trip-buttons";
 
+	let addEventButton = document.createElement("button");
+	addEventButton.className = "view-button";
+	addEventButton.textContent = "Add Event";
+
         let viewButton = document.createElement("button");
         viewButton.className = "view-button";
         viewButton.textContent = "View Trip";
@@ -269,8 +334,16 @@ function displayTrips() {
             membersModal.style.display = "flex";
         });
 
+	addEventButton.addEventListener("click", function () {
+	    selectedTripId = trip.id; 
+	    console.log("Testing");
+	    addEventModalForm.reset();
+	    addEventModal.style.display = "flex";
+	});
+
         buttons.appendChild(viewButton);
         buttons.appendChild(addMembersButton);
+	buttons.appendChild(addEventButton);
 
         details.appendChild(title);
         details.appendChild(dates);

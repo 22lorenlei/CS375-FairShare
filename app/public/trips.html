@@ -133,6 +133,58 @@
     </div>
 </div>
 
+<!-- Add Event Modal -->
+<div id="addEventModal" class="modal standard-form">
+	<div class="modal-content">
+
+		<h1> Add Event </h1>
+
+		<button id="closeAddEventModal" class="close-button standard-form">
+			    &times;
+		</button>
+
+		<form id="addEventForm" class="standard-form">
+			<label for="eventName" class="standard-form"> Event Name </label>
+			<input id="eventName" type="text" class="standard-form"
+			       placeholder="Enter event name"
+			       maxlength="50" required>
+			
+			<label for="eventCategory"> Category </label>
+			<input list="eventCategoryOptions" id="eventCategory" name="eventCategory"
+			       class="standard-form"
+			       placeholder="Select or type..."
+			       required>
+			<datalist id="eventCategoryOptions">
+				<option value="Food">
+				<option value="Flight">
+				<option value="Hotel">
+				<option value="Excursion">
+			</datalist>
+
+			<label for="eventTotalPrice" class="standard-form"> Total Price </label>
+			<input id="eventTotalPrice" type="number" class="standard-form"
+			       placeholder="Enter total price"
+			       required>
+
+			<label for="eventStartDate" class="standard-form">Start Date</label>
+			<input id="eventStartDate" type="date" class="standard-form" required>
+
+			<label for="eventEndDate" class="standard-form">End Date</label>
+			<input id="eventEndDate" type="date" class="standard-form" required>
+
+			<label for="eventLocation" class="standard-form"> Location </label>
+			<input id="eventLocation" type="text" class="standard-form" required>
+
+			<p id="addEventFeedback" class="standard-user-message"> </p>
+
+			<button type="submit" id="addEvent"
+				class="dark-button full-button">
+				Add Event
+			</button>
+		</form>
+	</div>
+</div>
+
 <!-- Success notification -->
 <div id="successMessage" class="success-message">
     <span id="successText"></span>

@@ -113,7 +113,8 @@ app.post("/register", (req, res) => {
                 message: "Account Successfully Created!"
             });
         }).catch((error) => {
-            console.log(error)
+            console.log(error);
+	    console.log(username, email, password);
             if (error.detail?.includes('email')) {
             return res.status(400).json({
                 message: "Account with this email already exists!"
@@ -383,6 +384,25 @@ app.post("/trips/:id/members", requireLogin, async (req, res) => {
             error: "Could not add member"
         });
     }
+});
+
+app.post("/addEvent", requireLogin, (req, res) => {
+    let userId = req.session.user.id;
+
+    if (!Number.isInteger(userId) || userId < 1) {
+        res.status(400).json({ error: "Invalid user" });
+        return;
+    }
+
+    // First we have to make the relevant DB for events, that goes in setup.sql
+	// Then we will have to do an insert, maybe validation and error handling
+
+    // Temp
+    console.log("Hello");
+    res.status(200).json({
+	    message: "Event added successfully"
+    });
+
 });
 
 app.listen(port, hostname, () => {

@@ -261,19 +261,22 @@ button {
 
 /* Form */
 
-#tripForm {
+#tripForm, 
+.standard-form {
     display: flex;
     flex-direction: column;
 }
 
-#tripForm label {
+#tripForm label, 
+.standard-form label {
     font-weight: bold;
     margin-bottom: 10px;
     font-size: 14px;
 }
 
 #tripForm input,
-.user-form input {
+.user-form input, 
+.standard-form input {
     border: 1px solid #ddd;
     border-radius: 7px;
     padding: 14px 15px;
@@ -281,13 +284,15 @@ button {
     background-color: white;
 }
 
-#tripForm input {
+#tripForm input,
+.standard-form input {
     width: 100%;
     margin-bottom: 20px;
 }
 
 #tripForm input:focus,
-.user-form input:focus {
+.user-form input:focus,
+.standard-form input:focus {
     outline: none;
     border-color: #777;
 }
@@ -302,14 +307,18 @@ button {
     width: 100%;
 }
 
-#createMessage {
+#createMessage,
+.standard-user-message {
     color: #c0392b;
     font-size: 14px;
 }
 
-#createMessage:empty {
+#createMessage:empty,
+.standard-user-message:empty {
     display: none;
 }
+
+
 
 /* View trip */
 
