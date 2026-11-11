@@ -1,8 +1,503 @@
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #fafafa;
+    color: #222;
+}
+
+/* Navigation */
+.navbar {
+    height: 65px;
+    background-color: #fafafa;
+    border-bottom: 1px solid #ddd;
+    padding: 0 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.brand {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.nav-link {
+    color: #333;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+.nav-link.active {
+    font-weight: bold;
+}
+
+.nav-placeholder {
+    color: #999;
+    font-size: 15px;
+}
+
+/* Main page */
+.container {
+    max-width: 1100px;
+    margin: 45px auto;
+    padding: 0 25px;
+}
+
+.user-section {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 35px;
+}
+
+.user-section h3 {
+    margin: 0 0 12px;
+}
+
+.user-form {
+    display: flex;
+    gap: 12px;
+}
+
+.user-form input {
+    max-width: 300px;
+}
+
+#userMessage {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 0;
+}
+
+#userMessage:empty {
+    display: none;
+}
+
+.page-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.page-heading h1 {
+    font-size: 30px;
+    margin: 0 0 5px;
+}
+
+.page-heading p {
+    color: #888;
+    margin: 0;
+}
+
+/* Buttons */
+button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.dark-button {
+    background-color: #3e3e3e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 22px;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.dark-button:hover {
+    background-color: #222;
+}
+
+.dark-button:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+}
+
+#selectUser {
+    background-color: #3e3e3e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 20px;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 35px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 25px;
+}
+
+.tab {
+    background: none;
+    border: none;
+    padding: 0 0 15px;
+    font-size: 15px;
+    color: #888;
+}
+
+.active-tab {
+    color: #333;
+    font-weight: bold;
+    border-bottom: 2px solid #333;
+}
+
+/* Trip cards */
+.trip-card {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.trip-image {
+    width: 125px;
+    height: 115px;
+    flex-shrink: 0;
+    border-radius: 9px;
+    background-color: #eeeeee;
+}
+
+.trip-details {
+    flex: 1;
+}
+
+.trip-details h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+}
+
+.trip-details p {
+    margin: 7px 0;
+    color: #888;
+    font-size: 14px;
+}
+
+.view-button {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 7px;
+    padding: 11px 18px;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.view-button:hover {
+    background-color: #f2f2f2;
+}
+
+.empty-message {
+    color: #888;
+    text-align: center;
+    padding: 45px 20px;
+}
+
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.45);
+
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal-content {
+    background-color: #fafafa;
+    width: 100%;
+    max-width: 650px;
+    max-height: 90vh;
+    overflow-y: auto;
+
+    border-radius: 12px;
+    padding: 35px;
+    position: relative;
+}
+
+.modal-content h1 {
+    font-size: 30px;
+    margin: 0 0 6px;
+}
+
+.subtitle {
+    color: #888;
+    margin: 0 0 30px;
+}
+
+.close-button {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+
+    background: none;
+    border: none;
+    font-size: 30px;
+    color: #777;
+}
+
+/* Form */
+
+#tripForm,
+.standard-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#tripForm label,
+.standard-form label {
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+#tripForm input,
+.user-form input,
+.standard-form input {
+    border: 1px solid #ddd;
+    border-radius: 7px;
+    padding: 14px 15px;
+    font-size: 15px;
+    background-color: white;
+}
+
+#tripForm input,
+.standard-form input {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+#tripForm input:focus,
+.user-form input:focus,
+.standard-form input:focus {
+    outline: none;
+    border-color: #777;
+}
+
+.field-note {
+    color: #888;
+    font-size: 12px;
+    margin: -10px 0 20px;
+}
+
+.full-button {
+    width: 100%;
+}
+
+#createMessage,
+.standard-user-message {
+    color: #c0392b;
+    font-size: 14px;
+}
+
+#createMessage:empty,
+.standard-user-message:empty {
+    display: none;
+}
+
+
+
+/* View trip */
+
+.trip-info {
+    margin-top: 25px;
+    line-height: 1.8;
+}
+
+.trip-info p {
+    margin: 12px 0;
+}
+
+.trip-info ul {
+    padding-left: 25px;
+}
+
+/* Responsive */
+@media (max-width: 650px) {
+    .navbar {
+        padding: 0 15px;
+    }
+
+    .nav-left {
+        gap: 18px;
+    }
+
+    .brand {
+        font-size: 19px;
+    }
+
+    .nav-placeholder {
+        display: none;
+    }
+
+    .page-heading {
+        flex-direction: column;
+    }
+
+    .trip-card {
+        gap: 12px;
+    }
+
+    .trip-image {
+        width: 70px;
+        height: 80px;
+    }
+
+    .modal-content {
+        padding: 25px;
+    }
+}
+
+/* Add Members Modal */
+#membersModal .modal-content {
+    width: 100%;
+    max-width: 500px;
+    padding: 30px;
+    box-sizing: border-box;
+}
+
+#membersForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+#membersForm label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#membersForm input {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+#membersForm .field-note {
+    font-size: 13px;
+    color: #888;
+    margin: 0 0 12px;
+}
+
+#membersForm .full-button {
+    width: 100%;
+    margin-top: 10px;
+}
+
+#membersMessage {
+    color: #c0392b;
+    font-size: 14px;
+    margin: 0;
+}
+
+#membersMessage:empty {
+    display: none;
+}
+
+/* Trip card buttons */
+.trip-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.trip-buttons .view-button {
+    background-color: white;
+    color: #222;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.trip-buttons .view-button:hover {
+    background-color: #f5f5f5;
+}
+
+/* Success notification */
+.success-message {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fff;
+    color: #222;
+    border: 1px solid #d1e7d5;
+    border-left: 4px solid #2e8b57;
+    border-radius: 8px;
+    padding: 14px 18px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    min-width: 280px;
+    max-width: calc(100% - 32px);
+    z-index: 2000;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+#closeSuccess {
+    background: none;
+    border: none;
+    color: #777;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 0;
+}
+
+/* table temp */
+.event-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.event-table th,
+.event-table td {
+  border: 1px solid black;
+  padding: 8px;
+}
+
+/* Travel search page */
+
+
+.travel-page * {
+  box-sizing: border-box;
+}
+
+body.travel-page {
   margin: 0;
   background: #f8f8f8;
   color: #1a1a1a;
@@ -14,8 +509,7 @@ body {
 }
 
 /* Main page title */
-
-h1 {
+.travel-page h1 {
   font-size: 22px;
   font-weight: 600;
   margin-top: 0;
@@ -23,27 +517,25 @@ h1 {
 }
 
 /* Trip information */
-
-body > div:first-of-type {
+body.travel-page > div:first-of-type {
   margin-bottom: 35px;
 }
 
-#trip-name {
+.travel-page #trip-name {
   font-size: 22px;
   font-weight: 600;
   margin-bottom: 6px;
 }
 
-#trip-destination,
-#trip-dates {
+.travel-page #trip-destination,
+.travel-page #trip-dates {
   color: #707070;
   font-size: 12px;
   margin: 4px 0;
 }
 
 /* Section titles */
-
-h2 {
+.travel-page h2 {
   font-size: 16px;
   font-weight: 600;
   margin-top: 28px;
@@ -51,7 +543,7 @@ h2 {
   color: #404040;
 }
 
-hr {
+.travel-page hr {
   border: 0;
   border-top: 1px solid #d8d8d8;
   margin-top: 35px;
@@ -59,8 +551,7 @@ hr {
 }
 
 /* Labels */
-
-label {
+.travel-page label {
   display: inline-block;
   font-size: 10px;
   font-weight: 600;
@@ -69,8 +560,7 @@ label {
 }
 
 /* Inputs */
-
-input {
+.travel-page input {
   height: 34px;
   border: 1px solid #d8d8d8;
   border-radius: 5px;
@@ -81,22 +571,21 @@ input {
   outline: none;
 }
 
-input:focus {
+.travel-page input:focus {
   border-color: #707070;
 }
 
-#origin {
+.travel-page #origin {
   width: 210px;
 }
 
-#travelers,
-#guests {
+.travel-page #travelers,
+.travel-page #guests {
   width: 80px;
 }
 
 /* Buttons */
-
-button {
+.travel-page button {
   height: 34px;
   padding: 0 20px;
   background: #404040;
@@ -108,33 +597,30 @@ button {
   cursor: pointer;
 }
 
-button:hover {
+.travel-page button:hover {
   background: #2f2f2f;
 }
 
 /* Messages */
-
-#message,
-#hotel-message,
-#activity-message {
+.travel-page #message,
+.travel-page #hotel-message,
+.travel-page #activity-message {
   font-size: 12px;
   color: #707070;
   margin-top: 12px;
 }
 
 /* Results containers */
-
-#flight-results,
-#hotel-results,
-#activity-results {
+.travel-page #flight-results,
+.travel-page #hotel-results,
+.travel-page #activity-results {
   margin-top: 20px;
 }
 
 /* Each result card */
-
-#flight-results > div,
-#hotel-results > div,
-#activity-results > div {
+.travel-page #flight-results > div,
+.travel-page #hotel-results > div,
+.travel-page #activity-results > div {
   background: white;
   border: 1px solid #d8d8d8;
   border-radius: 8px;
@@ -143,10 +629,9 @@ button:hover {
 }
 
 /* Result titles */
-
-#flight-results h3,
-#hotel-results h3,
-#activity-results h3 {
+.travel-page #flight-results h3,
+.travel-page #hotel-results h3,
+.travel-page #activity-results h3 {
   font-size: 14px;
   font-weight: 600;
   color: #1a1a1a;
@@ -155,10 +640,9 @@ button:hover {
 }
 
 /* Normal result text */
-
-#flight-results p,
-#hotel-results p,
-#activity-results p {
+.travel-page #flight-results p,
+.travel-page #hotel-results p,
+.travel-page #activity-results p {
   font-size: 11px;
   color: #707070;
   margin: 6px 0;
@@ -166,8 +650,7 @@ button:hover {
 }
 
 /* Flight outbound / return headings */
-
-#flight-results h4 {
+.travel-page #flight-results h4 {
   font-size: 11px;
   font-weight: 600;
   color: #404040;
@@ -177,29 +660,25 @@ button:hover {
 }
 
 /* Make flight price stand out */
-
-#flight-results > div > p:first-of-type {
+.travel-page #flight-results > div > p:first-of-type {
   font-size: 14px;
   font-weight: 600;
   color: #1a1a1a;
 }
 
 /* Hotel prices */
-
-#hotel-results > div p {
+.travel-page #hotel-results > div p {
   max-width: 600px;
 }
 
 /* Activity cards */
-
-#activity-results > div {
+.travel-page #activity-results > div {
   min-height: 80px;
 }
 
 /* Give the search controls more spacing */
-
-#search-flights,
-#search-hotels,
-#search-activities {
+.travel-page #search-flights,
+.travel-page #search-hotels,
+.travel-page #search-activities {
   margin-top: 8px;
 }

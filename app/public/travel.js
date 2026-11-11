@@ -1,4 +1,4 @@
-let tripId = 1;
+let tripId = new URLSearchParams(window.location.search).get("tripId") || 1;
 
 let tripName = document.getElementById("trip-name");
 let tripDestination = document.getElementById("trip-destination");
