@@ -279,11 +279,46 @@ function loadEvents() {
 				td.classList.add('event-table');
 				tr.append(td);
 			}
+			let deleteEventButton = document.createElement("button");
+			deleteEventButton.textContent = "Delete";
+			let eventId = content.id;
+			tr.dataset.eventId = eventId;
+			deleteEventButton.addEventListener("click", function () {
+				deleteEvent(selectedTripId, eventId);
+			});
 			editEventModalTable.append(tr);
 		}
 	}).catch(function (error) {
 		console.log(error);
 	});
+}
+
+function deleteEvent(tripId, eventId) {
+	/*
+	fetch("/deleteEvent", {
+		method: "POST",
+                headers: {
+                       "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+			tripId: tripId,
+			eventId: eventId
+		}),
+	}).then(function (response) {
+		checkSession(response);
+		if (!response.ok) {
+			return response.json().then(function (data) {
+				throw new Error(data.error || "Could not create trip");
+			});
+		}
+		return response.json();
+	}).then(function (data) {
+		console.log(data);
+	        editEventModalTable.add	
+	}).catch(function (error) {
+		console.log(error);
+	});
+	*/
 }
 
 

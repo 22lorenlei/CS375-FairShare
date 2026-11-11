@@ -462,6 +462,32 @@ app.get("/loadEvents", requireLogin, async (req, res) => {
 	}
 });
 
+app.post("/deleteEvent", requireLogin, async (req, res) => {
+	let userId = req.session.user.id;
+	if (!Number.isInteger(userId) || userId < 1) {
+		res.status(400).json({ error: "Invalid user" });
+		return;
+	}
+
+	let tripId = req.body.tripId;
+	let eventId = req.body.eventId;
+
+	let sql = `DELETE FROM events WHERE (id=($1) AND tripId=($2))`;
+	let values = [eventId, tripId];
+
+	try {
+		await pool.query(sql, values);
+		res.status(200).json({
+			message: "Event deleted successfully"
+		});
+	} catch (error) {
+		console.log(error);
+		res.status(400).json({
+			message: "Database problem"
+		});
+	}
+});
+
 app.listen(port, hostname, () => {
     console.log(`Listening at http://${hostname}:${port}`);
 });
