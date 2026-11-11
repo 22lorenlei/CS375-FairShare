@@ -53,12 +53,3 @@ CREATE TABLE user_responsibility (
 	price_responsible FLOAT,
 	price_paid FLOAT
 );
-
--- Retain the original standalone trip schema for existing data.
-CREATE TABLE trips (
-  id SERIAL PRIMARY KEY,
-  trip_name VARCHAR(100),
-  destination VARCHAR(100),
-  start_date DATE,
-  end_date DATE
-);

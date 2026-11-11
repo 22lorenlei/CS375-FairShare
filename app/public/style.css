@@ -262,7 +262,7 @@ button {
 /* Form */
 
 #tripForm,
-.standard-form {
+form.standard-form {
     display: flex;
     flex-direction: column;
 }
