@@ -22,6 +22,10 @@ let addEventModal = document.getElementById("addEventModal");
 let closeAddEventModal = document.getElementById("closeAddEventModal");
 let addEventModalForm = document.getElementById("addEventForm");
 
+let editEventModal = document.getElementById("editEventModal");
+let closeEditEventModal = document.getElementById("closeEditEventModal");
+let editEventModalTable = document.getElementById("editEventModalTable");
+
 let selectedTripId = null;
 
 // Load navbar from separate HTML file
@@ -106,6 +110,11 @@ closeMembersButton.addEventListener("click", function () {
 // Close Add Event modal with X button
 closeAddEventModal.addEventListener("click", function () {
     addEventModal.style.display = "none";
+});
+
+// Close Edit Event modal with X button
+closeEditEventModal.addEventListener("click", function() {
+    editEventModal.style.display = "none"; 
 });
 
 // Create a new trip
@@ -248,6 +257,35 @@ function loadTrips() {
     });
 }
 
+function loadEvents() {
+	let route = "/loadEvents?tripId=" + selectedTripId;
+	fetch(route)
+	.then(function (response) {
+		checkSession(response);
+		if (!response.ok) {
+			throw new Error("Could not load events");
+		}
+		return response.json();
+	}).then(function (data) {
+		let contents = data.result;
+		console.log(contents);	
+		editEventModalTable.textContent = "";
+		for (let content of contents) {
+			let tr = document.createElement("tr");
+			tr.classList.add('event-table');
+			for (let [key, value] of Object.entries(content)) {
+				let td = document.createElement("td");
+				td.textContent = value;
+				td.classList.add('event-table');
+				tr.append(td);
+			}
+			editEventModalTable.append(tr);
+		}
+	}).catch(function (error) {
+		console.log(error);
+	});
+}
+
 
 // Format a date without timezone changes
 function formatDate(dateString) {
@@ -331,6 +369,10 @@ function displayTrips() {
         addMembersButton.className = "view-button";
         addMembersButton.textContent = "Add Members";
 
+	let editEventButton = document.createElement("button");
+	editEventButton.className = "view-button";
+	editEventButton.textContent = "Edit Events";
+
         addMembersButton.addEventListener("click", function () {
             selectedTripId = trip.id;
             membersMessage.textContent = "";
@@ -340,14 +382,20 @@ function displayTrips() {
 
 	addEventButton.addEventListener("click", function () {
 	    selectedTripId = trip.id; 
-	    console.log("Testing trip id:", selectedTripId);
 	    addEventModalForm.reset();
 	    addEventModal.style.display = "flex";
+	});
+
+	editEventButton.addEventListener("click", function () {
+	    selectedTripId = trip.id;
+	    loadEvents(); 
+	    editEventModal.style.display = "flex";	
 	});
 
         buttons.appendChild(viewButton);
         buttons.appendChild(addMembersButton);
 	buttons.appendChild(addEventButton);
+	buttons.appendChild(editEventButton);
 
         details.appendChild(title);
         details.appendChild(dates);

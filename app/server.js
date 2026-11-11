@@ -429,6 +429,39 @@ app.post("/addEvent", requireLogin, async (req, res) => {
     }
 });
 
+app.get("/loadEvents", requireLogin, async (req, res) => {
+	let userId = req.session.user.id;
+	let tripId = req.query.tripId;
+	if (!Number.isInteger(userId) || userId < 1) {
+		res.status(400).json({ error: "Invalid user" });
+		return;
+	}
+	
+	let sql = `SELECT 
+			id,
+		   	event_name, 
+			category, 
+			total_price, 
+			TO_CHAR(start_date, 'YYYY-MM-DD') as start_date,
+			TO_CHAR(end_date, 'YYYY-MM-DD') as end_date,
+			location
+		   FROM events WHERE travel_groups_id=($1)`;
+	let values = [tripId];
+
+	try {
+		let result = await pool.query(sql, values);
+		res.status(200).json({
+			message: "Events loaded successfully",
+			result: result.rows
+		});
+	} catch (error) {
+		console.log(error);
+		res.status(400).json({
+			message: "Database problem"
+		});
+	}
+});
+
 app.listen(port, hostname, () => {
     console.log(`Listening at http://${hostname}:${port}`);
 });

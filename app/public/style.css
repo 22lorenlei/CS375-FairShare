@@ -477,3 +477,15 @@ button {
     cursor: pointer;
     padding: 0;
 }
+
+/* table temp */
+.event-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.event-table th, 
+.event-table td {
+  border: 1px solid black;
+  padding: 8px;
+}
