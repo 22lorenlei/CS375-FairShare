@@ -5,13 +5,3 @@ CREATE TABLE trips (
   start_date DATE,
   end_date DATE
 );
-
-INSERT INTO trips
-(trip_name, destination, start_date, end_date)
-VALUES
-('Miami Trip', 'Miami, Florida', '2027-06-10', '2027-06-15');
-
-INSERT INTO trips
-(trip_name, destination, start_date, end_date)
-VALUES
-('Miami Test Trip', 'Miami, Florida', '2026-11-06', '2026-11-09');
