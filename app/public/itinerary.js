@@ -1,24 +1,21 @@
-// First version of the trip itinerary calendar
-// Events are examples until we have an events page and database
-let currentDate = new Date(2026, 9, 30);
+// Month view for the FairShare trip itinerary
+// Event information will come from the team's server
+let currentDate = new Date();
+let events = [];
 
-let events = [
-    { name: "Flight to Chicago", date: "2026-10-29", time: "9:00 AM" },
-    { name: "Hotel Check-in", date: "2026-10-30", time: "3:00 PM" },
-    { name: "Dinner", date: "2026-10-30", time: "7:00 PM" },
-    { name: "Museum", date: "2026-11-01", time: "1:00 PM" }
-];
+// The trip ID is passed in the URL, for example itinerary.html?tripId=2
+let params = new URLSearchParams(window.location.search);
+let tripId = Number(params.get("tripId"));
 
-// Format a date like 2026-10-30 so it matches our example events
 function dateText(year, month, day) {
     let m = String(month + 1).padStart(2, "0");
     let d = String(day).padStart(2, "0");
     return year + "-" + m + "-" + d;
 }
 
-// Eventually this will go to the team's create event page
+// This button will open the add event page once it is connected
 function addEvent(date) {
-    alert("Event creation page not ready yet. Date: " + date);
+    alert("Add event page is not connected yet.\nTrip: " + tripId + "\nDate: " + date);
 }
 
 function showCalendar() {
@@ -46,7 +43,7 @@ function showCalendar() {
         for (let col = 0; col < 7; col++) {
             let cell = document.createElement("td");
             if ((day === 1 && col < firstDay) || day > daysInMonth) {
-                // Leave empty cells before and after this month's dates
+                // Empty cells before and after the month's dates
             } else {
                 let date = dateText(year, month, day);
                 let number = document.createElement("span");
@@ -62,10 +59,13 @@ function showCalendar() {
                 cell.appendChild(plus);
 
                 for (let i = 0; i < events.length; i++) {
-                    if (events[i].date === date) {
+                    // An event may last more than one day
+                    let start = events[i].start_date;
+                    let end = events[i].end_date || start;
+                    if (start && date >= start && date <= end) {
                         let event = document.createElement("div");
                         event.className = "event";
-                        event.textContent = events[i].time + " " + events[i].name;
+                        event.textContent = events[i].event_name;
                         cell.appendChild(event);
                     }
                 }
@@ -75,6 +75,55 @@ function showCalendar() {
         }
         table.appendChild(row);
     }
+}
+
+// Get the selected trip from the team's /trips route
+function loadTrip() {
+    fetch("/trips")
+    .then(function (response) {
+        if (response.status === 401) {
+            window.location.href = "login.html";
+            throw new Error("Please log in first");
+        }
+        if (!response.ok) throw new Error("Could not load trips");
+        return response.json();
+    })
+    .then(function (data) {
+        let trip = null;
+        for (let i = 0; i < data.rows.length; i++) {
+            if (Number(data.rows[i].id) === tripId) {
+                trip = data.rows[i];
+                break;
+            }
+        }
+        if (trip === null) throw new Error("Trip not found in your trips");
+
+        document.getElementById("tripName").textContent = trip.name;
+        if (trip.start_date) {
+            // Show the month the trip starts in
+            let parts = trip.start_date.split("-");
+            currentDate = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+            showCalendar();
+        }
+        return fetch("/loadEvents?tripId=" + tripId);
+    })
+    .then(function (response) {
+        if (response.status === 401) {
+            window.location.href = "login.html";
+            throw new Error("Please log in first");
+        }
+        if (!response.ok) throw new Error("Could not load events");
+        return response.json();
+    })
+    .then(function (data) {
+        events = data.result;
+        showCalendar();
+        document.getElementById("message").textContent =
+            events.length === 0 ? "No events have been added to this trip yet" : "";
+    })
+    .catch(function (error) {
+        document.getElementById("message").textContent = error.message;
+    });
 }
 
 document.getElementById("previous").addEventListener("click", function () {
@@ -95,3 +144,10 @@ document.getElementById("today").addEventListener("click", function () {
 });
 
 showCalendar();
+if (!Number.isInteger(tripId) || tripId < 1) {
+    document.getElementById("tripName").textContent = "No trip selected";
+    document.getElementById("message").textContent =
+        "Open the calendar with a trip ID, for example itinerary.html?tripId=1";
+} else {
+    loadTrip();
+}
