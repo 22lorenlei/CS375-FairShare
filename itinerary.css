@@ -1,0 +1,47 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 30px;
+}
+
+h1 {
+    color: #2563eb;
+}
+
+button {
+    cursor: pointer;
+    padding: 5px;
+    margin: 3px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+th, td {
+    border: 1px solid #aaa;
+    padding: 5px;
+}
+
+th {
+    background-color: #eee;
+}
+
+td {
+    height: 100px;
+    vertical-align: top;
+}
+
+.addButton {
+    float: right;
+    padding: 0 5px;
+}
+
+.event {
+    background-color: #e1e8f5;
+    border: 1px solid #aaa;
+    padding: 3px;
+    margin-top: 4px;
+    font-size: 12px;
+}
