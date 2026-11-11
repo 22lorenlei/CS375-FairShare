@@ -218,7 +218,6 @@ app.get("/api/trips/:tripId/flights", (req, res) => {
       }
 
       let offers = response.data.data.offers;
-
       let flights = [];
 
       let amount = offers.length;
@@ -303,16 +302,17 @@ app.get("/api/trips/:tripId/hotels", (req, res) => {
 
       return axios({
         method: "get",
-        url: "https://api.stayingapi.com/v1/search",
-        headers: {
-          Authorization: "Bearer " + env["stay_api_key"],
-        },
+        url: "https://serpapi.com/search",
         params: {
-          location: trip.destination,
-          checkIn: startDate,
-          checkOut: endDate,
+          engine: "google_hotels",
+          q: trip.destination + " hotels",
+          check_in_date: startDate,
+          check_out_date: endDate,
           adults: guests,
-          limit: 10,
+          currency: "USD",
+          gl: "us",
+          hl: "en",
+          api_key: env["serpapi_key"],
         },
       });
     })
@@ -321,36 +321,44 @@ app.get("/api/trips/:tripId/hotels", (req, res) => {
         return;
       }
 
-      let results = response.data.data;
+      let results = response.data.properties;
       let hotels = [];
 
-      for (let i = 0; i < results.length; i++) {
+      if (!results) {
+        res.json({
+          hotels: hotels,
+        });
+        return;
+      }
+
+      let amount = results.length;
+
+      if (amount > 10) {
+        amount = 10;
+      }
+
+      for (let i = 0; i < amount; i++) {
         let result = results[i];
 
         let hotel = {
-          id: result.id,
           name: result.name,
-          platform: result.platform,
-          property_type: result.propertyType,
-          star_rating: result.starRating,
-          guest_rating: result.guestRating,
-          rating_scale: result.ratingScale,
-          city: null,
+          type: result.type,
+          hotel_class: result.hotel_class,
+          rating: result.overall_rating,
+          reviews: result.reviews,
+          check_in_time: result.check_in_time,
+          check_out_time: result.check_out_time,
           nightly_price: null,
           total_price: null,
-          currency: null,
-          nights: null,
+          property_token: result.property_token,
         };
 
-        if (result.location) {
-          hotel.city = result.location.city;
+        if (result.rate_per_night) {
+          hotel.nightly_price = result.rate_per_night.display_price;
         }
 
-        if (result.price) {
-          hotel.nightly_price = result.price.nightlyPrice;
-          hotel.total_price = result.price.totalPrice;
-          hotel.currency = result.price.currency;
-          hotel.nights = result.price.nights;
+        if (result.total_rate) {
+          hotel.total_price = result.total_rate.display_price;
         }
 
         hotels.push(hotel);

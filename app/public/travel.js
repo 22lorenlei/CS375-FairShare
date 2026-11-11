@@ -1,4 +1,4 @@
-let tripId = 2;
+let tripId = 1;
 
 let tripName = document.getElementById("trip-name");
 let tripDestination = document.getElementById("trip-destination");
@@ -214,23 +214,24 @@ searchHotelsButton.addEventListener("click", () => {
           let name = document.createElement("h3");
           name.textContent = hotel.name;
 
-          let platform = document.createElement("p");
-          platform.textContent = "Platform: " + hotel.platform;
-
           hotelDiv.append(name);
-          hotelDiv.append(platform);
 
-          if (hotel.city != null) {
-            let city = document.createElement("p");
-            city.textContent = "Location: " + hotel.city;
+          if (hotel.hotel_class != null) {
+            let hotelClass = document.createElement("p");
 
-            hotelDiv.append(city);
+            hotelClass.textContent = "Hotel Class: " + hotel.hotel_class;
+
+            hotelDiv.append(hotelClass);
           }
 
-          if (hotel.guest_rating != null) {
+          if (hotel.rating != null) {
             let rating = document.createElement("p");
-            rating.textContent =
-              "Rating: " + hotel.guest_rating + " / " + hotel.rating_scale;
+
+            rating.textContent = "Rating: " + hotel.rating;
+
+            if (hotel.reviews != null) {
+              rating.textContent += " (" + hotel.reviews + " reviews)";
+            }
 
             hotelDiv.append(rating);
           }
@@ -238,8 +239,7 @@ searchHotelsButton.addEventListener("click", () => {
           if (hotel.nightly_price != null) {
             let nightlyPrice = document.createElement("p");
 
-            nightlyPrice.textContent =
-              "Nightly Price: $" + hotel.nightly_price + " " + hotel.currency;
+            nightlyPrice.textContent = "Nightly Price: " + hotel.nightly_price;
 
             hotelDiv.append(nightlyPrice);
           }
@@ -247,18 +247,25 @@ searchHotelsButton.addEventListener("click", () => {
           if (hotel.total_price != null) {
             let totalPrice = document.createElement("p");
 
-            totalPrice.textContent =
-              "Total: $" + hotel.total_price + " " + hotel.currency;
+            totalPrice.textContent = "Total: " + hotel.total_price;
 
             hotelDiv.append(totalPrice);
           }
 
-          if (hotel.nights != null) {
-            let nights = document.createElement("p");
+          if (hotel.check_in_time != null) {
+            let checkIn = document.createElement("p");
 
-            nights.textContent = "Nights: " + hotel.nights;
+            checkIn.textContent = "Check In: " + hotel.check_in_time;
 
-            hotelDiv.append(nights);
+            hotelDiv.append(checkIn);
+          }
+
+          if (hotel.check_out_time != null) {
+            let checkOut = document.createElement("p");
+
+            checkOut.textContent = "Check Out: " + hotel.check_out_time;
+
+            hotelDiv.append(checkOut);
           }
 
           hotelResults.append(hotelDiv);
