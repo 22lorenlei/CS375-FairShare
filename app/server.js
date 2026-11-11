@@ -386,7 +386,7 @@ app.post("/trips/:id/members", requireLogin, async (req, res) => {
     }
 });
 
-app.post("/addEvent", requireLogin, (req, res) => {
+app.post("/addEvent", requireLogin, async (req, res) => {
     let userId = req.session.user.id;
 
     if (!Number.isInteger(userId) || userId < 1) {
@@ -394,15 +394,39 @@ app.post("/addEvent", requireLogin, (req, res) => {
         return;
     }
 
+    let tripId = req.body.tripId;
+    let eventName = req.body.eventName;
+    let eventCategory = req.body.eventCategory;
+    let eventTotalPrice = req.body.eventTotalPrice;
+    let eventStartDate = req.body.eventStartDate;
+    let eventEndDate = req.body.eventEndDate;
+    let eventLocation = req.body.eventLocation;
+
+    console.log(tripId, eventName, eventCategory, eventTotalPrice, eventStartDate, eventEndDate, eventLocation);
+
     // First we have to make the relevant DB for events, that goes in setup.sql
 	// Then we will have to do an insert, maybe validation and error handling
+	//
 
-    // Temp
-    console.log("Hello");
-    res.status(200).json({
-	    message: "Event added successfully"
-    });
+    let sql = `
+    	INSERT INTO events(travel_groups_id, event_name, category, total_price, start_date, end_date, location) 
+	VALUES($1, $2, $3, $4, $5, $6, $7)
+	`;
 
+    let values = [tripId, eventName, eventCategory, eventTotalPrice, 
+	    eventStartDate, eventEndDate, eventLocation];
+
+    try {
+	await pool.query(sql, values);
+	res.status(200).json({
+		message: "Event added successfully"
+	});
+    } catch (error) {
+	console.log(error);
+	res.status(400).json({
+		message: "Database problem"
+	});
+    }
 });
 
 app.listen(port, hostname, () => {

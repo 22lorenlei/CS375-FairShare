@@ -174,12 +174,13 @@ tripForm.addEventListener("submit", function (event) {
 addEventModalForm.addEventListener("submit", function(event) {
 	event.preventDefault();
 
-	let eventName = document.getElementById("eventName");
-	let eventCategory = document.getElementById("eventCategory");
-	let eventTotalPrice = document.getElementById("eventTotalPrice");
-	let eventStartDate = document.getElementById("eventStartDate");
-	let eventEndDate = document.getElementById("eventEndDate");
-	let eventLocation = document.getElementById("eventLocation");
+	let tripId = selectedTripId;
+	let eventName = document.getElementById("eventName").value;
+	let eventCategory = document.getElementById("eventCategory").value;
+	let eventTotalPrice = document.getElementById("eventTotalPrice").value;
+	let eventStartDate = document.getElementById("eventStartDate").value;
+	let eventEndDate = document.getElementById("eventEndDate").value;
+	let eventLocation = document.getElementById("eventLocation").value;
 
 	let addEventFeedback = document.getElementById("addEventFeedback");
 
@@ -191,12 +192,15 @@ addEventModalForm.addEventListener("submit", function(event) {
 	let createButton = document.getElementById("createTrip");
 	createButton.disabled = true;
 
+	console.log(tripId, eventName, eventCategory, eventTotalPrice, eventStartDate, eventEndDate, eventLocation);
+
 	fetch("/addEvent", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json"
 		},
 		body: JSON.stringify({
+			tripId: tripId,
 			eventName: eventName,
 			eventCategory: eventCategory,
 			eventTotalPrice: eventTotalPrice,
@@ -336,7 +340,7 @@ function displayTrips() {
 
 	addEventButton.addEventListener("click", function () {
 	    selectedTripId = trip.id; 
-	    console.log("Testing");
+	    console.log("Testing trip id:", selectedTripId);
 	    addEventModalForm.reset();
 	    addEventModal.style.display = "flex";
 	});
