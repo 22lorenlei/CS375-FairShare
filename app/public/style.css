@@ -682,3 +682,17 @@ body.travel-page > div:first-of-type {
 .travel-page #search-activities {
   margin-top: 8px;
 }
+
+.travel-page .add-trip-button {
+  margin-top: 12px;
+  background-color: white;
+  color: #222;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  padding: 8px 14px;
+  height: auto;
+}
+
+.travel-page .add-trip-button:hover {
+  background-color: #f2f2f2;
+}

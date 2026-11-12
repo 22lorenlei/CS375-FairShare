@@ -23,6 +23,9 @@ let searchActivitiesButton = document.getElementById("search-activities");
 let activityMessage = document.getElementById("activity-message");
 let activityResults = document.getElementById("activity-results");
 
+let tripStartDate = "";
+let tripEndDate = "";
+
 function formatTime(dateTime) {
   let time = dateTime.substring(11, 16);
 
@@ -63,10 +66,10 @@ fetch("/api/trips/" + tripId)
     tripName.textContent = body.trip_name;
     tripDestination.textContent = body.destination;
 
-    let startDate = body.start_date.substring(0, 10);
-    let endDate = body.end_date.substring(0, 10);
+    tripStartDate = body.start_date.substring(0, 10);
+    tripEndDate = body.end_date.substring(0, 10);
 
-    tripDates.textContent = startDate + " to " + endDate;
+    tripDates.textContent = tripStartDate + " to " + tripEndDate;
   })
   .catch((error) => {
     console.log(error);
@@ -179,6 +182,59 @@ searchButton.addEventListener("click", () => {
             flightDiv.append(returnInfo);
           }
 
+          let addButton = document.createElement("button");
+          addButton.textContent = "Add to Trip";
+          addButton.className = "add-trip-button";
+
+          addButton.addEventListener("click", () => {
+            let startDate = flight.outbound.departing_at.substring(0, 10);
+            let endDate = startDate;
+
+            if (flight.returning != null) {
+              endDate = flight.returning.arriving_at.substring(0, 10);
+            }
+
+            let location =
+              flight.outbound.origin + " to " + flight.outbound.destination;
+
+            fetch("/addEvent", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                tripId: Number(tripId),
+                eventName:
+                  flight.airline +
+                  " " +
+                  flight.outbound.origin +
+                  " to " +
+                  flight.outbound.destination,
+                eventCategory: "Flight",
+                eventTotalPrice: Number(flight.price),
+                eventStartDate: startDate,
+                eventEndDate: endDate,
+                eventLocation: location,
+              }),
+            })
+              .then((response) => {
+                return response.json();
+              })
+              .then((body) => {
+                if (body.message == "Event added successfully") {
+                  addButton.textContent = "Added";
+                  addButton.disabled = true;
+                } else {
+                  console.log(body);
+                }
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+          });
+
+          flightDiv.append(addButton);
+
           flightResults.append(flightDiv);
         }
       }
@@ -268,6 +324,52 @@ searchHotelsButton.addEventListener("click", () => {
             hotelDiv.append(checkOut);
           }
 
+          let addButton = document.createElement("button");
+          addButton.textContent = "Add to Trip";
+          addButton.className = "add-trip-button";
+
+          addButton.addEventListener("click", () => {
+            let totalPrice = 0;
+
+            if (hotel.total_price != null) {
+              totalPrice = Number(
+                hotel.total_price.replace("$", "").replace(",", ""),
+              );
+            }
+
+            fetch("/addEvent", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                tripId: Number(tripId),
+                eventName: hotel.name,
+                eventCategory: "Hotel",
+                eventTotalPrice: totalPrice,
+                eventStartDate: tripStartDate,
+                eventEndDate: tripEndDate,
+                eventLocation: tripDestination.textContent,
+              }),
+            })
+              .then((response) => {
+                return response.json();
+              })
+              .then((body) => {
+                if (body.message == "Event added successfully") {
+                  addButton.textContent = "Added";
+                  addButton.disabled = true;
+                } else {
+                  console.log(body);
+                }
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+          });
+
+          hotelDiv.append(addButton);
+
           hotelResults.append(hotelDiv);
         }
       }
@@ -305,7 +407,6 @@ searchActivitiesButton.addEventListener("click", () => {
 
           if (activity.date != null) {
             let date = document.createElement("p");
-
             date.textContent = "Date: " + activity.date;
 
             activityDiv.append(date);
@@ -313,7 +414,6 @@ searchActivitiesButton.addEventListener("click", () => {
 
           if (activity.time != null) {
             let time = document.createElement("p");
-
             time.textContent = "Time: " + activity.time;
 
             activityDiv.append(time);
@@ -321,7 +421,6 @@ searchActivitiesButton.addEventListener("click", () => {
 
           if (activity.venue != null) {
             let venue = document.createElement("p");
-
             venue.textContent = "Venue: " + activity.venue;
 
             activityDiv.append(venue);
@@ -329,19 +428,85 @@ searchActivitiesButton.addEventListener("click", () => {
 
           if (activity.address != null) {
             let address = document.createElement("p");
-
             address.textContent = "Location: " + activity.address;
 
             activityDiv.append(address);
           }
 
+          let price = document.createElement("p");
+
           if (activity.price != null) {
-            let price = document.createElement("p");
-
             price.textContent = "Price: " + activity.price;
-
-            activityDiv.append(price);
+          } else {
+            price.textContent = "Price: Not available";
           }
+
+          activityDiv.append(price);
+
+          let addButton = document.createElement("button");
+          addButton.textContent = "Add to Trip";
+          addButton.className = "add-trip-button";
+
+          addButton.addEventListener("click", () => {
+            let activityPrice = null;
+
+            if (activity.price != null) {
+              let priceText = String(activity.price);
+
+              priceText = priceText.replace("$", "");
+              priceText = priceText.replace(",", "");
+
+              activityPrice = Number(priceText);
+
+              if (isNaN(activityPrice)) {
+                activityPrice = null;
+              }
+            }
+
+            let activityLocation = tripDestination.textContent;
+
+            if (activity.venue != null) {
+              activityLocation = activity.venue;
+            }
+
+            if (activity.address != null) {
+              activityLocation = activity.address;
+            }
+
+            fetch("/addEvent", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                tripId: Number(tripId),
+                eventName: activity.title,
+                eventCategory: "Excursion",
+                eventTotalPrice: activityPrice,
+                eventStartDate: tripStartDate,
+                eventEndDate: tripStartDate,
+                eventLocation: activityLocation,
+              }),
+            })
+              .then((response) => {
+                return response.json();
+              })
+              .then((body) => {
+                console.log(body);
+
+                if (body.message == "Event added successfully") {
+                  addButton.textContent = "Added";
+                  addButton.disabled = true;
+                } else {
+                  console.log(body);
+                }
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+          });
+
+          activityDiv.append(addButton);
 
           activityResults.append(activityDiv);
         }

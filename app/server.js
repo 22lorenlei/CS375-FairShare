@@ -5,6 +5,7 @@ const pg = require("pg");
 const path = require("path");
 const bcrypt = require("bcrypt");
 const session = require("express-session");
+const pgSession = require("connect-pg-simple")(session);
 const crypto = require("crypto");
 
 const app = express();
@@ -17,11 +18,29 @@ const pool = new pg.Pool(env);
 
 app.use(express.json());
 // Remember the logged-in user on the server.
+
+/*
 app.use(session({
     secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex"),
     resave: false,
     saveUninitialized: false,
     cookie: { httpOnly: true, sameSite: "lax", maxAge: 24 * 60 * 60 * 1000 }
+}));
+*/
+
+app.use(session({
+    store: new pgSession({
+        pool: pool,
+        createTableIfMissing: true
+    }),
+    secret: env["session_secret"],
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    }
 }));
 
 function requireLogin(req, res, next) {
