@@ -3,16 +3,15 @@ let tripId = new URLSearchParams(window.location.search).get("tripId") || 1;
 let tripName = document.getElementById("trip-name");
 let tripDestination = document.getElementById("trip-destination");
 let tripDates = document.getElementById("trip-dates");
+let tripMembers = document.getElementById("trip-members");
 
 let origin = document.getElementById("origin");
-let travelers = document.getElementById("travelers");
 
 let searchButton = document.getElementById("search-flights");
 
 let message = document.getElementById("message");
 let flightResults = document.getElementById("flight-results");
 
-let guests = document.getElementById("guests");
 let searchHotelsButton = document.getElementById("search-hotels");
 
 let hotelMessage = document.getElementById("hotel-message");
@@ -25,6 +24,7 @@ let activityResults = document.getElementById("activity-results");
 
 let tripStartDate = "";
 let tripEndDate = "";
+let tripMemberCount = 1;
 
 function formatTime(dateTime) {
   let time = dateTime.substring(11, 16);
@@ -58,6 +58,7 @@ function formatDuration(duration) {
   return value;
 }
 
+// Load trip information
 fetch("/api/trips/" + tripId)
   .then((response) => {
     return response.json();
@@ -69,18 +70,24 @@ fetch("/api/trips/" + tripId)
     tripStartDate = body.start_date.substring(0, 10);
     tripEndDate = body.end_date.substring(0, 10);
 
+    tripMemberCount = body.member_count;
     tripDates.textContent = tripStartDate + " to " + tripEndDate;
+    if (tripMemberCount == 1) {
+      tripMembers.textContent = tripMemberCount + " traveler";
+    } else {
+      tripMembers.textContent = tripMemberCount + " travelers";
+    }
   })
   .catch((error) => {
     console.log(error);
   });
 
+// Search flights
 searchButton.addEventListener("click", () => {
   message.textContent = "";
   flightResults.textContent = "";
 
   let originValue = origin.value;
-  let travelerValue = travelers.value;
 
   let url =
     "/api/trips/" +
@@ -88,7 +95,7 @@ searchButton.addEventListener("click", () => {
     "/flights?origin=" +
     originValue +
     "&travelers=" +
-    travelerValue;
+    tripMemberCount;
 
   fetch(url)
     .then((response) => {
@@ -244,13 +251,12 @@ searchButton.addEventListener("click", () => {
     });
 });
 
+// Search hotels
 searchHotelsButton.addEventListener("click", () => {
   hotelMessage.textContent = "";
   hotelResults.textContent = "";
 
-  let guestValue = guests.value;
-
-  let url = "/api/trips/" + tripId + "/hotels?guests=" + guestValue;
+  let url = "/api/trips/" + tripId + "/hotels?guests=" + tripMemberCount;
 
   fetch(url)
     .then((response) => {
@@ -379,6 +385,7 @@ searchHotelsButton.addEventListener("click", () => {
     });
 });
 
+// Search activities
 searchActivitiesButton.addEventListener("click", () => {
   activityMessage.textContent = "";
   activityResults.textContent = "";

@@ -575,9 +575,18 @@ app.get("/api/trips/:tripId", requireLogin, requireTripMember, (req, res) => {
 
   pool
     .query(
-      `SELECT id, name AS trip_name, destination, start_date, end_date
-    FROM travel_groups
-    WHERE id = $1`,
+      `SELECT
+        travel_groups.id,
+        travel_groups.name AS trip_name,
+        travel_groups.destination,
+        travel_groups.start_date,
+        travel_groups.end_date,
+        COUNT(group_members.user_id)::INTEGER AS member_count
+      FROM travel_groups
+      JOIN group_members
+        ON travel_groups.id = group_members.group_id
+      WHERE travel_groups.id = $1
+      GROUP BY travel_groups.id`,
       [tripId],
     )
     .then((result) => {
