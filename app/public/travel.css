@@ -1,0 +1,206 @@
+/* Travel search page */
+
+.travel-page * {
+  box-sizing: border-box;
+}
+
+body.travel-page {
+  margin: 0;
+  background: #f8f8f8;
+  color: #1a1a1a;
+  font-family: Inter, Arial, sans-serif;
+  max-width: 820px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 30px 20px 60px 20px;
+}
+
+/* Main page title */
+.travel-page h1 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 6px;
+}
+
+/* Trip information */
+body.travel-page > div:first-of-type {
+  margin-bottom: 35px;
+}
+
+.travel-page #trip-name {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.travel-page #trip-destination,
+.travel-page #trip-dates {
+  color: #707070;
+  font-size: 12px;
+  margin: 4px 0;
+}
+
+/* Section titles */
+.travel-page h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 28px;
+  margin-bottom: 15px;
+  color: #404040;
+}
+
+.travel-page hr {
+  border: 0;
+  border-top: 1px solid #d8d8d8;
+  margin-top: 35px;
+  margin-bottom: 30px;
+}
+
+/* Labels */
+.travel-page label {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  color: #707070;
+  margin-bottom: 6px;
+}
+
+/* Inputs */
+.travel-page input {
+  height: 34px;
+  border: 1px solid #d8d8d8;
+  border-radius: 5px;
+  background: white;
+  padding: 0 12px;
+  font-size: 11px;
+  color: #1a1a1a;
+  outline: none;
+}
+
+.travel-page input:focus {
+  border-color: #707070;
+}
+
+.travel-page #origin {
+  width: 210px;
+}
+
+.travel-page #travelers,
+.travel-page #guests {
+  width: 80px;
+}
+
+/* Buttons */
+.travel-page button {
+  font-family: inherit;
+  height: 34px;
+  padding: 0 20px;
+  background: #404040;
+  color: white;
+  border: 1px solid #404040;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.travel-page button:hover {
+  background: #2f2f2f;
+}
+
+/* Messages */
+.travel-page #message,
+.travel-page #hotel-message,
+.travel-page #activity-message {
+  font-size: 12px;
+  color: #707070;
+  margin-top: 12px;
+}
+
+/* Results containers */
+.travel-page #flight-results,
+.travel-page #hotel-results,
+.travel-page #activity-results {
+  margin-top: 20px;
+}
+
+/* Each result card */
+.travel-page #flight-results > div,
+.travel-page #hotel-results > div,
+.travel-page #activity-results > div {
+  background: white;
+  border: 1px solid #d8d8d8;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+/* Result titles */
+.travel-page #flight-results h3,
+.travel-page #hotel-results h3,
+.travel-page #activity-results h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+/* Normal result text */
+.travel-page #flight-results p,
+.travel-page #hotel-results p,
+.travel-page #activity-results p {
+  font-size: 11px;
+  color: #707070;
+  margin: 6px 0;
+  line-height: 1.5;
+}
+
+/* Flight outbound / return headings */
+.travel-page #flight-results h4 {
+  font-size: 11px;
+  font-weight: 600;
+  color: #404040;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+/* Make flight price stand out */
+.travel-page #flight-results > div > p:first-of-type {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Hotel prices */
+.travel-page #hotel-results > div p {
+  max-width: 600px;
+}
+
+/* Activity cards */
+.travel-page #activity-results > div {
+  min-height: 80px;
+}
+
+/* Give the search controls more spacing */
+.travel-page #search-flights,
+.travel-page #search-hotels,
+.travel-page #search-activities {
+  margin-top: 8px;
+}
+
+.travel-page .add-trip-button {
+  margin-top: 12px;
+  background-color: white;
+  color: #222;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  padding: 8px 14px;
+  height: auto;
+}
+
+.travel-page .add-trip-button:hover {
+  background-color: #f2f2f2;
+}

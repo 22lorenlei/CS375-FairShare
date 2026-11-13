@@ -1,10 +1,5 @@
 let tripId = new URLSearchParams(window.location.search).get("tripId") || 1;
 
-let tripName = document.getElementById("trip-name");
-let tripDestination = document.getElementById("trip-destination");
-let tripDates = document.getElementById("trip-dates");
-let tripMembers = document.getElementById("trip-members");
-
 let origin = document.getElementById("origin");
 
 let searchButton = document.getElementById("search-flights");
@@ -25,6 +20,7 @@ let activityResults = document.getElementById("activity-results");
 let tripStartDate = "";
 let tripEndDate = "";
 let tripMemberCount = 1;
+let tripLocation = "";
 
 function formatTime(dateTime) {
   let time = dateTime.substring(11, 16);
@@ -58,29 +54,50 @@ function formatDuration(duration) {
   return value;
 }
 
+// Load top navbar
+fetch("/navbar.html")
+  .then((response) => {
+    return response.text();
+  })
+  .then((html) => {
+    let documentCopy = new DOMParser().parseFromString(html, "text/html");
+
+    let navbar = documentCopy.querySelector("nav");
+
+    document.getElementById("navbar").appendChild(navbar);
+
+    document.getElementById("logout").addEventListener("click", () => {
+      fetch("/logout", {
+        method: "POST",
+      }).then(() => {
+        window.location.href = "/login.html";
+      });
+    });
+  })
+  .catch((error) => {
+    console.log(error);
+  });
+
 // Load trip information
 fetch("/api/trips/" + tripId)
   .then((response) => {
     return response.json();
   })
   .then((body) => {
-    tripName.textContent = body.trip_name;
-    tripDestination.textContent = body.destination;
-
     tripStartDate = body.start_date.substring(0, 10);
+
     tripEndDate = body.end_date.substring(0, 10);
 
     tripMemberCount = body.member_count;
-    tripDates.textContent = tripStartDate + " to " + tripEndDate;
-    if (tripMemberCount == 1) {
-      tripMembers.textContent = tripMemberCount + " traveler";
-    } else {
-      tripMembers.textContent = tripMemberCount + " travelers";
-    }
+
+    tripLocation = body.destination;
   })
   .catch((error) => {
     console.log(error);
   });
+
+// Load shared trip navigation
+loadTripNavigation("travel");
 
 // Search flights
 searchButton.addEventListener("click", () => {
@@ -355,7 +372,8 @@ searchHotelsButton.addEventListener("click", () => {
                 eventTotalPrice: totalPrice,
                 eventStartDate: tripStartDate,
                 eventEndDate: tripEndDate,
-                eventLocation: tripDestination.textContent,
+
+                eventLocation: tripLocation,
               }),
             })
               .then((response) => {
@@ -470,7 +488,7 @@ searchActivitiesButton.addEventListener("click", () => {
               }
             }
 
-            let activityLocation = tripDestination.textContent;
+            let activityLocation = tripLocation;
 
             if (activity.venue != null) {
               activityLocation = activity.venue;
@@ -499,8 +517,6 @@ searchActivitiesButton.addEventListener("click", () => {
                 return response.json();
               })
               .then((body) => {
-                console.log(body);
-
                 if (body.message == "Event added successfully") {
                   addButton.textContent = "Added";
                   addButton.disabled = true;

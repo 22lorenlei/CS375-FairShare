@@ -2,53 +2,67 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>FairShare Travel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>FairShare - Travel</title>
+
     <link rel="stylesheet" href="style.css" />
   </head>
 
-  <body class="travel-page">
-    <h1>Travel</h1>
+  <body>
+    <div id="navbar"></div>
 
-    <div>
-      <h2 id="trip-name">Trip</h2>
-      <p id="trip-destination"></p>
-      <p id="trip-dates"></p>
-      <p id="trip-members"></p>
-    </div>
+    <main class="container">
+      <div id="trip-header"></div>
 
-    <h2>Search Flights</h2>
+      <div class="trip-content travel-page">
+        <h2>Travel</h2>
 
-    <label for="origin">Flying From:</label>
-    <input id="origin" type="text" placeholder="PHL" />
+        <p class="subtitle">
+          Search for flights, hotels, and activities for this trip.
+        </p>
 
-    <br /><br />
+        <hr />
 
-    <button id="search-flights">Search Flights</button>
+        <h2>Search Flights</h2>
 
-    <p id="message"></p>
+        <label for="origin">Flying From</label>
 
-    <div id="flight-results"></div>
+        <input id="origin" type="text" placeholder="PHL" />
 
-    <hr />
+        <br /><br />
 
-    <h2>Search Hotels</h2>
+        <button id="search-flights" class="dark-button">Search Flights</button>
 
-    <button id="search-hotels">Search Hotels</button>
+        <p id="message"></p>
 
-    <p id="hotel-message"></p>
+        <div id="flight-results"></div>
 
-    <div id="hotel-results"></div>
+        <hr />
 
-    <hr />
+        <h2>Search Hotels</h2>
 
-    <h2>Search Activities</h2>
+        <button id="search-hotels" class="dark-button">Search Hotels</button>
 
-    <button id="search-activities">Search Activities</button>
+        <p id="hotel-message"></p>
 
-    <p id="activity-message"></p>
+        <div id="hotel-results"></div>
 
-    <div id="activity-results"></div>
+        <hr />
 
+        <h2>Search Activities</h2>
+
+        <button id="search-activities" class="dark-button">
+          Search Activities
+        </button>
+
+        <p id="activity-message"></p>
+
+        <div id="activity-results"></div>
+      </div>
+    </main>
+
+    <script src="trip-navbar.js"></script>
     <script src="travel.js"></script>
   </body>
 </html>
