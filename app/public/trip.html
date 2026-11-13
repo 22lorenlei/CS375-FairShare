@@ -17,17 +17,61 @@
       <div id="trip-header"></div>
 
       <div class="trip-content">
-        <h2>Overview</h2>
+        <div class="overview-heading">
+          <div>
+            <h2>Overview</h2>
 
-        <p>
-          View your trip information and use the navigation above to manage your
-          trip.
-        </p>
+            <p class="subtitle">
+              View your trip budget, members, and upcoming plans.
+            </p>
+          </div>
+        </div>
+
+        <div class="overview-summary">
+          <div class="summary-card">
+            <p class="summary-label">Starting Budget</p>
+
+            <h3 id="starting-budget">$0.00</h3>
+          </div>
+
+          <div class="summary-card">
+            <p class="summary-label">Planned Cost</p>
+
+            <h3 id="total-spent">$0.00</h3>
+          </div>
+
+          <div class="summary-card">
+            <p class="summary-label">Remaining</p>
+
+            <h3 id="remaining-budget">$0.00</h3>
+          </div>
+
+          <div class="summary-card">
+            <p class="summary-label">Members</p>
+
+            <h3 id="member-count">0</h3>
+          </div>
+        </div>
+
+        <div class="overview-grid">
+          <div class="overview-section">
+            <div class="section-heading">
+              <h2>Upcoming Plans</h2>
+            </div>
+
+            <div id="overview-event-list"></div>
+          </div>
+
+          <div class="overview-section">
+            <h2>Cost Breakdown</h2>
+
+            <div id="category-breakdown"></div>
+          </div>
+        </div>
       </div>
     </main>
 
     <script src="trip-navbar.js"></script>
-
     <script src="trip.js"></script>
   </body>
 </html>

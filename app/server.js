@@ -570,6 +570,88 @@ function getFlightSlice(slice) {
   };
 }
 
+app.get(
+  "/api/trips/:tripId/overview",
+  requireLogin,
+  requireTripMember,
+  (req, res) => {
+    let tripId = req.params.tripId;
+
+    let tripQuery = `
+        SELECT
+            travel_groups.id,
+            travel_groups.name,
+            travel_groups.destination,
+            travel_groups.start_date,
+            travel_groups.end_date,
+            travel_groups.starting_budget,
+            COUNT(DISTINCT group_members.user_id)::INTEGER AS member_count
+        FROM travel_groups
+        LEFT JOIN group_members
+            ON travel_groups.id = group_members.group_id
+        WHERE travel_groups.id = $1
+        GROUP BY travel_groups.id
+    `;
+
+    let eventQuery = `
+        SELECT
+            id,
+            event_name,
+            category,
+            total_price,
+            start_date,
+            end_date,
+            location
+        FROM events
+        WHERE travel_groups_id = $1
+        ORDER BY start_date, id
+    `;
+
+    Promise.all([
+      pool.query(tripQuery, [tripId]),
+      pool.query(eventQuery, [tripId]),
+    ])
+      .then((results) => {
+        let tripResult = results[0];
+        let eventResult = results[1];
+
+        if (tripResult.rows.length == 0) {
+          res.status(404);
+          res.json({ error: "Trip not found" });
+          return;
+        }
+
+        let trip = tripResult.rows[0];
+        let events = eventResult.rows;
+
+        let totalSpent = 0;
+
+        for (let i = 0; i < events.length; i++) {
+          if (events[i].total_price != null) {
+            totalSpent += Number(events[i].total_price);
+          }
+        }
+
+        let startingBudget = Number(trip.starting_budget);
+
+        let remainingBudget = startingBudget - totalSpent;
+
+        res.json({
+          trip: trip,
+          total_spent: totalSpent,
+          remaining_budget: remainingBudget,
+          events: events,
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+
+        res.status(500);
+        res.json({ error: "Database error" });
+      });
+  },
+);
+
 app.get("/api/trips/:tripId", requireLogin, requireTripMember, (req, res) => {
   let tripId = req.params.tripId;
 
