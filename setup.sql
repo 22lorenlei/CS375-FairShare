@@ -2,6 +2,7 @@
 CREATE DATABASE fairshare;
 \c fairshare
 
+DROP TABLE IF EXISTS expenses CASCADE;
 DROP TABLE IF EXISTS events CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS travel_groups CASCADE;
@@ -52,4 +53,15 @@ CREATE TABLE user_responsibility (
 	username VARCHAR(100),
 	price_responsible FLOAT,
 	price_paid FLOAT
+);
+
+CREATE TABLE expenses (
+    id SERIAL PRIMARY KEY,
+    group_id INTEGER NOT NULL REFERENCES travel_groups(id),
+    description VARCHAR(150) NOT NULL,
+    category VARCHAR(30) NOT NULL,
+    amount NUMERIC(10,2) NOT NULL CHECK (amount > 0),
+    expense_date DATE NOT NULL,
+    paid_by INTEGER NOT NULL REFERENCES users(id),
+    created_by INTEGER NOT NULL REFERENCES users(id)
 );

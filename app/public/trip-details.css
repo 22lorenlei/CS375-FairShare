@@ -1,0 +1,210 @@
+[hidden] {
+    display: none !important;
+}
+
+.trip-heading {
+    margin-bottom: 30px;
+}
+
+.back-link {
+    color: #666;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.trip-heading h1 {
+    margin: 18px 0 8px;
+    font-size: 30px;
+}
+
+.trip-tabs {
+    overflow-x: auto;
+    gap: 32px;
+}
+
+.trip-tabs .tab {
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.page-heading h2 {
+    margin: 0 0 5px;
+    font-size: 26px;
+}
+
+.budget-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.expense-panel {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.expense-panel h3 {
+    font-size: 17px;
+    margin: 0 0 18px;
+}
+
+.budget-grid p {
+    margin: 0 0 14px;
+    color: #777;
+    font-size: 14px;
+}
+
+.budget-grid strong {
+    font-size: 26px;
+    overflow-wrap: anywhere;
+}
+
+.category-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 15px;
+    margin: 14px 8px;
+    font-size: 15px;
+}
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+th {
+    font-size: 12px;
+    color: #888;
+    font-weight: normal;
+}
+
+th,
+td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+td:nth-child(4) {
+    white-space: nowrap;
+}
+
+.text-button {
+    background: none;
+    border: none;
+    padding: 18px 0 0;
+    font-weight: bold;
+    color: #444;
+}
+
+#pageMessage,
+#expenseMessage {
+    color: #b23328;
+}
+
+#pageMessage:empty,
+#expenseMessage:empty {
+    display: none;
+}
+
+#emptyExpenses {
+    color: #777;
+}
+
+.over-budget {
+    color: #b23328;
+}
+
+.expense-dialog {
+    border: none;
+    border-radius: 12px;
+    padding: 32px;
+    background: #fafafa;
+    width: calc(100% - 32px);
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.expense-dialog::backdrop {
+    background: rgba(0, 0, 0, .45);
+}
+
+.expense-dialog h2 {
+    margin-top: 0;
+}
+
+#expenseForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#expenseForm label {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#expenseForm input,
+#expenseForm select {
+    font: inherit;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 2px solid #555;
+    outline-offset: 3px;
+}
+
+.delete-expense {
+    background: white;
+    color: #b23328;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 7px 12px;
+}
+
+.delete-expense:hover {
+    background: #fff3f1;
+}
+
+.delete-expense:disabled {
+    opacity: .5;
+    cursor: wait;
+}
+
+@media (max-width: 650px) {
+    .budget-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .trip-tabs {
+        gap: 24px;
+    }
+
+    .category-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .expense-panel {
+        padding: 16px;
+    }
+
+}

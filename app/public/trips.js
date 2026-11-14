@@ -400,10 +400,10 @@ function displayTrips() {
         viewButton.className = "view-button";
         viewButton.textContent = "View Trip";
         viewButton.addEventListener("click", function () {
-            window.location.href = "/travel.html?tripId=" + encodeURIComponent(trip.id);
+            window.location.href = "/trip-details.html?id=" + encodeURIComponent(trip.id);
         });
 
-        // Keep View Trip going to travel searches, and provide a separate calendar link.
+        // Keep the calendar directly accessible from My Trips.
         let itineraryButton = document.createElement("button");
         itineraryButton.className = "view-button";
         itineraryButton.textContent = "Itinerary";

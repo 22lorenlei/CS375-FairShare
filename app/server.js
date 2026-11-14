@@ -36,7 +36,7 @@ app.get("/", (req, res) => {
     res.redirect(req.session.user ? "/trips.html" : "/login.html");
 });
 
-app.get("/trips.html", (req, res, next) => {
+app.get(["/trips.html", "/trip-details.html"], (req, res, next) => {
     res.set("Cache-Control", "no-store");
     if (!req.session.user) return res.redirect("/login.html");
     next();
@@ -1003,6 +1003,77 @@ app.get("/api/trips/:tripId/activities", requireLogin, requireTripMember, (req, 
         error: "Unable to search activities",
       });
     });
+});
+
+// Trip details and expenses share the travel routes' membership check.
+app.get("/trips/:tripId", requireLogin, requireTripMember, async (req, res) => {
+    try {
+        let trip = await pool.query("SELECT * FROM travel_groups WHERE id = $1", [req.params.tripId]);
+        let members = await pool.query(
+            `SELECT users.id, users.username FROM users
+             JOIN group_members ON users.id = group_members.user_id
+             WHERE group_members.group_id = $1 ORDER BY users.username`, [req.params.tripId]);
+        res.json({ trip: trip.rows[0], members: members.rows, userId: req.session.user.id });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Could not load trip" });
+    }
+});
+
+app.get("/trips/:tripId/expenses", requireLogin, requireTripMember, async (req, res) => {
+    try {
+        let result = await pool.query(
+            `SELECT expenses.id, expenses.description, expenses.category, expenses.amount,
+                    TO_CHAR(expense_date, 'YYYY-MM-DD') AS expense_date,
+                    users.username AS paid_by_username
+             FROM expenses JOIN users ON users.id = expenses.paid_by
+             WHERE group_id = $1 ORDER BY expense_date DESC, expenses.id DESC`, [req.params.tripId]);
+        res.json({ expenses: result.rows });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Could not load expenses" });
+    }
+});
+
+app.post("/trips/:tripId/expenses", requireLogin, requireTripMember, async (req, res) => {
+    let { description, category, amount, date, paidBy } = req.body || {};
+    if (typeof description !== "string" || !description.trim() || description.length > 150 ||
+        !["Lodging", "Food", "Transportation", "Activities", "Other"].includes(category) ||
+        typeof amount !== "string" || !/^\d{1,8}(\.\d{1,2})?$/.test(amount) || Number(amount) <= 0 ||
+        !Number.isSafeInteger(paidBy) || paidBy < 1 || typeof date !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return res.status(400).json({ error: "Enter valid expense details and a positive amount with at most two decimal places" });
+    }
+    let parsed = new Date(date + "T00:00:00Z");
+    if (isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) {
+        return res.status(400).json({ error: "Invalid expense date" });
+    }
+    try {
+        let result = await pool.query(
+            `INSERT INTO expenses (group_id, description, category, amount, expense_date, paid_by, created_by)
+             SELECT $1, $2, $3, $4, $5, user_id, $7 FROM group_members
+             WHERE group_id = $1 AND user_id = $6 RETURNING id`,
+            [req.params.tripId, description.trim(), category, amount, date, paidBy, req.session.user.id]);
+        if (!result.rows.length) return res.status(400).json({ error: "The payer must be a trip member" });
+        res.status(201).json({ id: result.rows[0].id });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Could not add expense" });
+    }
+});
+
+app.delete("/trips/:tripId/expenses/:expenseId", requireLogin, requireTripMember, async (req, res) => {
+    let expenseId = Number(req.params.expenseId);
+    if (!Number.isSafeInteger(expenseId) || expenseId < 1) return res.status(400).json({ error: "Invalid expense" });
+    try {
+        let result = await pool.query("DELETE FROM expenses WHERE id = $1 AND group_id = $2 RETURNING id",
+            [expenseId, req.params.tripId]);
+        if (!result.rows.length) return res.status(404).json({ error: "Expense not found" });
+        res.json({ message: "Expense deleted" });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Could not delete expense" });
+    }
 });
 
 app.listen(port, hostname, () => {

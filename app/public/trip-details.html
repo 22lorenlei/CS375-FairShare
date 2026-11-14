@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FairShare - Trip</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="trip-details.css">
+</head>
+<body>
+<div id="navbar"></div>
+<main class="container">
+    <header class="trip-heading">
+        <a href="/trips.html" class="back-link">&larr; My Trips</a>
+        <h1 id="tripTitle">Loading trip…</h1>
+    </header>
+    <nav class="tabs trip-tabs" aria-label="Trip sections">
+        <button class="tab" data-section="Overview">Overview</button>
+        <a class="tab" id="itineraryLink" href="/trips.html">Itinerary</a>
+        <button class="tab active-tab" data-section="Expenses" aria-current="page">Expenses</button>
+        <button class="tab" data-section="Receipts">Receipts</button>
+        <button class="tab" data-section="Members">Members</button>
+        <a class="tab" id="travelLink" href="/trips.html">Travel</a>
+        <button class="tab" data-section="Budget">Budget</button>
+    </nav>
+    <p id="pageMessage" role="status"></p>
+    <section id="expensesSection" hidden>
+        <div class="page-heading">
+            <div><h2>Expenses</h2><p>Add and manage group expenses.</p></div>
+            <button id="openExpense" class="dark-button">+ Add Expense</button>
+        </div>
+        <div class="budget-grid">
+            <div class="expense-panel"><p>Total Budget</p><strong id="totalBudget">$0.00</strong></div>
+            <div class="expense-panel"><p>Total Spent</p><strong id="totalSpent">$0.00</strong></div>
+            <div class="expense-panel"><p>Remaining</p><strong id="remaining">$0.00</strong></div>
+        </div>
+        <section class="expense-panel"><h3>Expenses by Category</h3><div id="categories"></div></section>
+        <section class="expense-panel">
+            <h3 id="expensesHeading">Recent Expenses</h3>
+            <p id="emptyExpenses" hidden>No expenses yet. Add the first expense for this trip.</p>
+            <div class="table-scroll"><table id="expenseTable" hidden>
+                <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Paid by</th><th>Actions</th></tr></thead>
+                <tbody id="expenseRows"></tbody>
+            </table></div>
+            <button id="viewAllExpenses" class="text-button" hidden>View All Expenses</button>
+        </section>
+    </section>
+</main>
+<dialog id="expenseModal" class="expense-dialog" aria-labelledby="expenseModalTitle">
+    <button id="closeExpense" class="close-button" aria-label="Close add expense">&times;</button>
+    <h2 id="expenseModalTitle">Add Expense</h2>
+    <p class="subtitle">Record an expense paid by a trip member.</p>
+    <form id="expenseForm">
+        <label for="expenseDescription">Description</label>
+        <input id="expenseDescription" maxlength="150" placeholder="e.g. Hotel" required>
+        <label for="expenseCategory">Category</label>
+        <select id="expenseCategory" required><option>Lodging</option><option>Food</option><option>Transportation</option><option>Activities</option><option>Other</option></select>
+        <label for="expenseAmount">Amount ($)</label>
+        <input id="expenseAmount" type="number" min="0.01" max="99999999.99" step="0.01" placeholder="0.00" required>
+        <label for="expenseDate">Date</label><input id="expenseDate" type="date" required>
+        <label for="expensePayer">Paid by</label><select id="expensePayer" required></select>
+        <p id="expenseMessage" role="alert"></p>
+        <button id="saveExpense" type="submit" class="dark-button">Save Expense</button>
+    </form>
+</dialog>
+<script src="trip-details.js"></script>
+</body>
+</html>
