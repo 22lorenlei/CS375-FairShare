@@ -103,7 +103,7 @@ app.post("/register", (req, res) => {
     }
 
 
-    argon2.hash(password, 10).then((hashedPassword) =>  {
+    argon2.hash(password).then((hashedPassword) =>  {
         pool.query(
         `INSERT INTO users(username, email, password)
             VALUES($1, $2, $3)
