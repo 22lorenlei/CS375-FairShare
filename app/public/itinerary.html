@@ -1,24 +1,123 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FairShare - Itinerary</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="itinerary.css">
 </head>
 <body>
-    <h1>FairShare</h1>
-    <p><a href="trips.html">My Trips</a> / Itinerary</p>
-    <h2>Trip Itinerary</h2>
-    <p id="tripName">Loading trip...</p>
-    <p id="message" aria-live="polite"></p>
 
-    <button id="previous">Previous</button>
-    <button id="today">Today</button>
-    <button id="next">Next</button>
-    <h3 id="monthTitle"></h3>
+<div id="navbar"></div>
 
-    <table id="calendar"></table>
+<main class="container itinerary-page">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="trips.html">My Trips</a>
+        <span aria-hidden="true">/</span>
+        <span>Itinerary</span>
+    </nav>
 
-    <script src="itinerary.js"></script>
+    <div class="page-heading itinerary-heading">
+        <div>
+            <h1 id="tripName">Trip Itinerary</h1>
+            <p id="tripDetails">Loading trip details...</p>
+        </div>
+        <a href="trips.html" class="view-button back-link">Back to My Trips</a>
+    </div>
+
+    <div class="itinerary-overview">
+        <div>
+            <p class="overview-label">TRIP CALENDAR</p>
+            <p class="overview-description">Keep track of everything planned for your trip.</p>
+        </div>
+        <div class="event-total"><strong id="eventCount">0</strong> <span id="eventCountLabel">events planned</span></div>
+    </div>
+
+    <p id="message" class="itinerary-message" role="status" aria-live="polite"></p>
+
+    <section class="calendar-panel" aria-label="Trip calendar">
+        <div class="calendar-toolbar">
+            <div>
+                <p class="calendar-label">MONTH VIEW</p>
+                <h2 id="monthTitle" aria-live="polite"></h2>
+            </div>
+            <div class="calendar-controls">
+                <button type="button" id="previous" class="calendar-arrow" aria-label="Previous month">&#8249;</button>
+                <button type="button" id="today" class="view-button calendar-today">Today</button>
+                <button type="button" id="next" class="calendar-arrow" aria-label="Next month">&#8250;</button>
+            </div>
+        </div>
+
+        <div class="calendar-scroll">
+            <table id="calendar" aria-label="Monthly itinerary calendar">
+                <thead>
+                    <tr>
+                        <th scope="col">Sun</th><th scope="col">Mon</th><th scope="col">Tue</th>
+                        <th scope="col">Wed</th><th scope="col">Thu</th><th scope="col">Fri</th>
+                        <th scope="col">Sat</th>
+                    </tr>
+                </thead>
+                <tbody id="calendarBody"></tbody>
+            </table>
+        </div>
+        <p class="calendar-hint">Use the <strong>+</strong> button on a day to add an event. Select an event to see its details.</p>
+    </section>
+</main>
+
+<div id="eventModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="addEventTitle">
+    <div class="modal-content itinerary-modal-content">
+        <button type="button" id="closeEventModal" class="close-button" aria-label="Close">&times;</button>
+        <h1 id="addEventTitle">Add Event</h1>
+        <p class="subtitle">Add something to your trip itinerary.</p>
+
+        <form id="eventForm" class="standard-form">
+            <label for="eventName">Event Name</label>
+            <input id="eventName" type="text" placeholder="e.g. Museum visit" maxlength="50" required>
+
+            <label for="eventCategory">Category</label>
+            <input id="eventCategory" list="eventCategories" placeholder="Select or type a category" maxlength="100" required>
+            <datalist id="eventCategories">
+                <option value="Food"><option value="Flight"><option value="Hotel"><option value="Excursion">
+            </datalist>
+
+            <label for="eventTotalPrice">Total Price</label>
+            <input id="eventTotalPrice" type="number" placeholder="0.00" min="0" step="0.01" required>
+
+            <div class="itinerary-form-dates">
+                <div>
+                    <label for="eventStartDate">Start Date</label>
+                    <input id="eventStartDate" type="date" required>
+                </div>
+                <div>
+                    <label for="eventEndDate">End Date</label>
+                    <input id="eventEndDate" type="date" required>
+                </div>
+            </div>
+
+            <label for="eventLocation">Location</label>
+            <input id="eventLocation" type="text" placeholder="e.g. City museum" maxlength="100" required>
+
+            <p id="eventFormMessage" class="standard-user-message" role="alert"></p>
+            <button id="saveEvent" type="submit" class="dark-button full-button">Add Event</button>
+        </form>
+    </div>
+</div>
+
+<div id="detailsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailsTitle">
+    <div class="modal-content itinerary-modal-content event-details-content">
+        <button type="button" id="closeDetailsModal" class="close-button" aria-label="Close">&times;</button>
+        <p class="calendar-label">EVENT DETAILS</p>
+        <h1 id="detailsTitle">Event</h1>
+        <dl class="event-details">
+            <div><dt>Category</dt><dd id="detailCategory"></dd></div>
+            <div><dt>Dates</dt><dd id="detailDates"></dd></div>
+            <div><dt>Location</dt><dd id="detailLocation"></dd></div>
+            <div><dt>Total price</dt><dd id="detailPrice"></dd></div>
+        </dl>
+    </div>
+</div>
+
+<script src="itinerary.js"></script>
 </body>
 </html>

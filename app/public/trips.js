@@ -403,6 +403,14 @@ function displayTrips() {
             window.location.href = "/travel.html?tripId=" + encodeURIComponent(trip.id);
         });
 
+        // Keep View Trip going to travel searches, and provide a separate calendar link.
+        let itineraryButton = document.createElement("button");
+        itineraryButton.className = "view-button";
+        itineraryButton.textContent = "Itinerary";
+        itineraryButton.addEventListener("click", function () {
+            window.location.href = "/itinerary.html?tripId=" + encodeURIComponent(trip.id);
+        });
+
         let addMembersButton = document.createElement("button");
         addMembersButton.className = "view-button";
         addMembersButton.textContent = "Add Members";
@@ -431,6 +439,7 @@ function displayTrips() {
 	});
 
         buttons.appendChild(viewButton);
+        buttons.appendChild(itineraryButton);
         buttons.appendChild(addMembersButton);
 	buttons.appendChild(addEventButton);
 	buttons.appendChild(editEventButton);
