@@ -41,6 +41,17 @@ app.get("/trips.html", (req, res, next) => {
     if (!req.session.user) return res.redirect("/login.html");
     next();
 });
+
+app.get("/login.html", (req, res, next) => {
+    if (req.session.user) return res.redirect("/trips.html");
+    next();
+});
+
+app.get("/register.html", (req, res, next) => {
+    if (req.session.user) return res.redirect("/trips.html");
+    next();
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 
 app.post("/logout", (req, res) => {
@@ -60,6 +71,10 @@ app.post("/login", (req, res) => {
     let password = req.body.password;
     res.set("Cache-Control", "no-store");
 
+    if (typeof email !== "string" || typeof password !== "string" || email.includes(" ") || email.length < 5 || email.length > 100 || password.length < 8 || password.length > 64) {
+        return res.status(400).json({ message: "Invalid email or password" });
+    }
+
     pool.query(`SELECT * FROM users WHERE email = $1`, [email]).then((result) => {
         if (result.rows.length === 0) {
             res.status(200).send({ message: "Account doesn't exist" });
@@ -73,7 +88,7 @@ app.post("/login", (req, res) => {
                     // Remember the user before opening My Trips.
                     req.session.regenerate((error) => {
                         if (error) return res.status(500).json({ message: "Could not log in" });
-                        req.session.user = { id: user.id, username: user.username };
+                        req.session.user = { id: user.id, username: user.username, email: user.email};
                         req.session.save((error) => {
                             if (error) return res.status(500).json({ message: "Could not log in" });
                             res.status(200).json({ message: "Logged in!", loggedIn: true });
