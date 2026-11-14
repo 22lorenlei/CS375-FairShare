@@ -142,7 +142,7 @@ app.get("/login", (req, res) => {
             let user = result.rows[0];
 
             // compare inputted password with stored hashed password
-            argon2.verify(password, user.password).then((isMatch) => {
+            argon2.verify(user.password, password).then((isMatch) => {
                 if (isMatch) {
                     res.status(200).json({ message: "Logged in!" });
                 } else {

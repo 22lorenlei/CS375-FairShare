@@ -4,7 +4,7 @@
   "description": "Initial README File",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "devStart": "nodemon app/server.js"
   },
   "repository": {
     "type": "git",
@@ -19,8 +19,10 @@
   },
   "homepage": "https://github.com/22lorenlei/CS375-FairShare#readme",
   "dependencies": {
-    "bcrypt": "^6.0.0",
+    "argon2": "^0.45.2",
+    "cookie-parser": "^1.4.7",
     "express": "^5.3.0",
+    "nodemon": "^3.1.14",
     "pg": "^8.23.1"
   }
 }

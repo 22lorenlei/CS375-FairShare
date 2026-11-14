@@ -9,6 +9,14 @@ form.addEventListener("submit", (event) => {
         return response.json();
     }).then((body) => {
         document.getElementById("message").textContent = body.message;
+
+        
+        /* DIRECTS TO HOME PAGE AFTER LOG IN
+        if (body.message === "Logged in!") {
+            window.location.href = "/";
+        }
+        */
+
     }).catch((error) => {
         console.log(error);
     });
