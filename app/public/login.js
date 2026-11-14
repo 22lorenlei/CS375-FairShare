@@ -5,9 +5,18 @@ let form = document.getElementById("login-form");
 form.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    fetch(`/login?email=${encodeURIComponent(email.value)}&password=${encodeURIComponent(password.value)}`).then((response) => {
-        return response.json();
-    }).then((body) => {
+    fetch("/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            email: email.value,
+            password: password.value,
+        })
+    }).then((response) => {
+            return response.json();
+        }).then((body) => {
         document.getElementById("message").textContent = body.message;
         if (body.loggedIn) {
             window.location.href = "/trips.html";

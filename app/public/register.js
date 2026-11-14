@@ -34,6 +34,9 @@ form.addEventListener("submit", (event) => {
             if (response.status === 200) {
                 accountCreated.innerText = body.message;
                 accountCreated.style.color = "green"; 
+                setTimeout(() => {
+                    window.location.href = "/login.html";
+                }, 1000)
             } else {
                 accountCreated.innerText = body.message;
                 accountCreated.style.color = "red";

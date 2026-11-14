@@ -3,7 +3,7 @@ const axios = require("axios");
 const express = require("express");
 const pg = require("pg");
 const path = require("path");
-const bcrypt = require("bcrypt");
+const argon2 = require("argon2");
 const session = require("express-session");
 const crypto = require("crypto");
 
@@ -55,9 +55,9 @@ app.get("/auth/me", requireLogin, (req, res) => {
     res.json(req.session.user);
 });
 
-app.get("/login", (req, res) => {
-    let email = req.query.email;
-    let password = req.query.password;
+app.post("/login", (req, res) => {
+    let email = req.body.email;
+    let password = req.body.password;
     res.set("Cache-Control", "no-store");
 
     pool.query(`SELECT * FROM users WHERE email = $1`, [email]).then((result) => {
@@ -68,7 +68,7 @@ app.get("/login", (req, res) => {
             let user = result.rows[0];
 
             // compare inputted password with stored hashed password
-            return bcrypt.compare(password, user.password).then((isMatch) => {
+            return argon2.verify(user.password, password).then((isMatch) => {
                 if (isMatch) {
                     // Remember the user before opening My Trips.
                     req.session.regenerate((error) => {
@@ -103,7 +103,7 @@ app.post("/register", (req, res) => {
     }
 
 
-    bcrypt.hash(password, 10).then((hashedPassword) =>  {
+    argon2.hash(password, 10).then((hashedPassword) =>  {
         pool.query(
         `INSERT INTO users(username, email, password)
             VALUES($1, $2, $3)
