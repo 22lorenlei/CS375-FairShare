@@ -1,0 +1,29 @@
+{
+  "name": "cs375-fairshare",
+  "version": "1.0.0",
+  "description": "Initial README File",
+  "main": "index.js",
+  "scripts": {
+    "devStart": "nodemon app/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/22lorenlei/CS375-FairShare.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/22lorenlei/CS375-FairShare/issues"
+  },
+  "homepage": "https://github.com/22lorenlei/CS375-FairShare#readme",
+  "dependencies": {
+    "argon2": "^0.45.2",
+    "axios": "^1.13.2",
+    "express": "^5.3.0",
+    "express-session": "^1.19.0",
+    "nodemon": "^3.1.14",
+    "pg": "^8.23.1"
+  }
+}
