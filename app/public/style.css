@@ -682,3 +682,26 @@ body.travel-page > div:first-of-type {
 .travel-page #search-activities {
   margin-top: 8px;
 }
+
+/* Edit/Delete Events */
+/* VIEW MODE */
+#detailsModal #editActions,
+#detailsModal #editModalForm {
+  display: none;
+}
+
+#detailsModal #viewModeContent,
+#detailsModal #viewModeDetails {
+  display: flex; 
+}
+
+/* edit mode */
+#detailsModal.editing #viewModeContent,
+#detailsModal.editing #viewModeDetails {
+  display: none;
+}
+
+#detailsModal.editing #editActions,
+#detailsModal.editing #editModalForm {
+  display: flex; /* or flex */
+}

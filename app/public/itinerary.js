@@ -5,6 +5,10 @@ let events = [];
 let selectedTrip = null;
 let tripId = Number(new URLSearchParams(window.location.search).get("tripId"));
 
+let editButton = document.getElementById("editEventButton");
+let cancelEditButton = document.getElementById("cancelEditButton");
+let detailsModal = document.getElementById("detailsModal");
+
 function dateText(year, month, day) {
     return year + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
 }
@@ -265,7 +269,12 @@ document.getElementById("eventStartDate").addEventListener("change", function ()
 
 function closeModal(id) { document.getElementById(id).style.display = "none"; }
 document.getElementById("closeEventModal").addEventListener("click", function () { closeModal("eventModal"); });
-document.getElementById("closeDetailsModal").addEventListener("click", function () { closeModal("detailsModal"); });
+
+document.getElementById("closeDetailsModal").addEventListener("click", function () { 
+	closeModal("detailsModal"); 
+	detailsModal.classList.remove('editing');
+});
+
 window.addEventListener("click", function (event) {
     if (event.target.id === "eventModal" || event.target.id === "detailsModal") closeModal(event.target.id);
 });
@@ -287,6 +296,16 @@ document.getElementById("next").addEventListener("click", function () {
 document.getElementById("today").addEventListener("click", function () {
     currentDate = new Date();
     showCalendar();
+});
+
+editButton.addEventListener("click", function (e) {
+	e.preventDefault();
+	detailsModal.classList.add("editing");    
+});
+
+cancelEditButton.addEventListener("click", function (e) {
+	e.preventDefault();
+	detailsModal.classList.remove("editing");
 });
 
 loadNavbar();
