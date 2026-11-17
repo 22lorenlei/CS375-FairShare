@@ -489,6 +489,60 @@ app.post("/deleteEvent", requireLogin, async (req, res) => {
 	}
 });
 
+app.post("/editEvent", requireLogin, async (req, res) => {
+	let userId = req.session.user.id;
+	if (!Number.isInteger(userId) || userId < 1) {
+		res.status(400).json({ error: "Invalid user" });
+		return;
+	}
+
+	let tripId = req.body.tripId;
+	let eventId = req.body.eventId;
+	let eventName = req.body.eventName;
+	let eventCategory= req.body.eventCategory;
+	let startDate = req.body.startDate;
+	let endDate = req.body.endDate;
+	let eventLocation = req.body.eventLocation;
+	let price = req.body.price;
+
+	let sql = `
+		UPDATE events 
+		SET 
+		event_name=($1),
+		category=($2),
+		start_date=($3),
+		end_date=($4),
+		location=($5),
+		total_price=($6)
+		WHERE (id=($7) AND travel_groups_id=($8))
+	`;
+
+	console.log(tripId, eventId, eventName, startDate, endDate, eventLocation, price);
+
+	let values = [
+		eventName,
+		eventCategory,
+		startDate,
+		endDate,
+		eventLocation,
+		price,
+		eventId,
+		tripId
+	];
+
+	try {
+		await pool.query(sql, values);
+		res.status(200).json({
+			message: "Event edited successfully"
+		});
+	} catch (error) {
+		console.log(error);
+		res.status(400).json({
+			message: "Database problem"
+		});
+	}
+});
+
 // Travel searches use the same membership rules as the trip list.
 async function requireTripMember(req, res, next) {
     try {

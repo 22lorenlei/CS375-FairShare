@@ -13,6 +13,7 @@ let editButton = document.getElementById("editEventButton");
 let cancelEditButton = document.getElementById("cancelEditButton");
 let detailsModal = document.getElementById("detailsModal");
 let deleteEventButton = document.getElementById("deleteEventButton");
+let saveChangesButton = document.getElementById("saveChangesButton");
 
 function dateText(year, month, day) {
     return year + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
@@ -131,7 +132,12 @@ function showEventDetails(item) {
     document.getElementById("detailsModal").style.display = "flex";
     document.getElementById("closeDetailsModal").focus();
 	detailsModal.dataset.eventId = item.id;
-	console.log("Getting this event id:", item.id);
+    	document.getElementById("editEventName").value = item.event_name || "Event";
+	document.getElementById("editCategory").value = item.category || "Not set";
+	document.getElementById("editStartDate").value = item.start_date;
+	document.getElementById("editEndDate").value = item.end_date || "item.start_date";
+	document.getElementById("editPrice").value = item.total_price;
+	document.getElementById("editEventLocation").value = item.location || "Not set";
 }
 
 function addEvent(date) {
@@ -329,7 +335,40 @@ deleteEventButton.addEventListener("click", function () {
 		return checkResponse(response, "Could not delete event"); 
 	}).then(function (data) {
 		closeModal("detailsModal"); 
-		detailsModal.classList.remove('editing');
+		detailsModal.classList.remove("editing");
+		loadEvents();
+	}).catch(function (error) {
+		console.log(error);
+	});
+});
+
+saveChangesButton.addEventListener("click", function () {
+	let eventId = detailsModal.dataset.eventId;
+	let eventName = document.getElementById("editEventName").value;
+	let eventCategory = document.getElementById("editCategory").value;
+	let startDate = document.getElementById("editStartDate").value;
+	let endDate = document.getElementById("editEndDate").value;
+	let eventLocation = document.getElementById("editEventLocation").value;
+	let price = document.getElementById("editPrice").value;
+
+	fetch("/editEvent", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			tripId: tripId,
+			eventId: eventId,
+			eventName: eventName,
+			eventCategory: eventCategory,
+			startDate: startDate,
+			endDate: endDate,
+			eventLocation: eventLocation,
+			price: price
+		}),
+	}).then(function (response) {
+		return checkResponse(response, "Could not edit event");
+	}).then(function (data) {
+		closeModal("detailsModal");
+		detailsModal.classList.remove("editing");
 		loadEvents();
 	}).catch(function (error) {
 		console.log(error);
