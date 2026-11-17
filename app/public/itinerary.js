@@ -1,13 +1,11 @@
-// LOREN TO DO:
-// Add delete and edit functionality. HTML has been done already
-// Reeipt page
-
 // FairShare itinerary - month view for a single trip.
 // Uses the same /trips, /loadEvents and /addEvent routes as the My Trips page.
 let currentDate = new Date();
 let events = [];
 let selectedTrip = null;
 let tripId = Number(new URLSearchParams(window.location.search).get("tripId"));
+
+console.log(tripId);
 
 let editButton = document.getElementById("editEventButton");
 let cancelEditButton = document.getElementById("cancelEditButton");
