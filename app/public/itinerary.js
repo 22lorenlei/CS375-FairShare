@@ -12,6 +12,7 @@ let tripId = Number(new URLSearchParams(window.location.search).get("tripId"));
 let editButton = document.getElementById("editEventButton");
 let cancelEditButton = document.getElementById("cancelEditButton");
 let detailsModal = document.getElementById("detailsModal");
+let deleteEventButton = document.getElementById("deleteEventButton");
 
 function dateText(year, month, day) {
     return year + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
@@ -129,6 +130,8 @@ function showEventDetails(item) {
         ? "Not set" : price.toLocaleString("en-US", { style: "currency", currency: "USD" });
     document.getElementById("detailsModal").style.display = "flex";
     document.getElementById("closeDetailsModal").focus();
+	detailsModal.dataset.eventId = item.id;
+	console.log("Getting this event id:", item.id);
 }
 
 function addEvent(date) {
@@ -310,6 +313,27 @@ editButton.addEventListener("click", function (e) {
 cancelEditButton.addEventListener("click", function (e) {
 	e.preventDefault();
 	detailsModal.classList.remove("editing");
+});
+
+deleteEventButton.addEventListener("click", function () {
+	let eventId = detailsModal.dataset.eventId;
+
+	fetch("/deleteEvent", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			eventId: eventId,
+			tripId: tripId
+		}),
+	}).then(function (response) {
+		return checkResponse(response, "Could not delete event"); 
+	}).then(function (data) {
+		closeModal("detailsModal"); 
+		detailsModal.classList.remove('editing');
+		loadEvents();
+	}).catch(function (error) {
+		console.log(error);
+	});
 });
 
 loadNavbar();

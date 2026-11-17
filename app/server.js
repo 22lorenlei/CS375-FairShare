@@ -473,7 +473,7 @@ app.post("/deleteEvent", requireLogin, async (req, res) => {
 	let tripId = req.body.tripId;
 	let eventId = req.body.eventId;
 
-	let sql = `DELETE FROM events WHERE (id=($1) AND tripId=($2))`;
+	let sql = `DELETE FROM events WHERE (id=($1) AND travel_groups_id=($2))`;
 	let values = [eventId, tripId];
 
 	try {
