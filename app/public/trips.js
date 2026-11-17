@@ -180,65 +180,6 @@ tripForm.addEventListener("submit", function (event) {
     });
 });
 
-/*
-addEventModalForm.addEventListener("submit", function(event) {
-	event.preventDefault();
-
-	let tripId = selectedTripId;
-	let eventName = document.getElementById("eventName").value;
-	let eventCategory = document.getElementById("eventCategory").value;
-	let eventTotalPrice = document.getElementById("eventTotalPrice").value;
-	let eventStartDate = document.getElementById("eventStartDate").value;
-	let eventEndDate = document.getElementById("eventEndDate").value;
-	let eventLocation = document.getElementById("eventLocation").value;
-
-	let addEventFeedback = document.getElementById("addEventFeedback");
-
-	if (eventEndDate < eventStartDate) {
-		addEventFeedback.textContent = "End date must be equal or after start date";		
-		return;
-	}
-
-	let createButton = document.getElementById("createTrip");
-	createButton.disabled = true;
-
-	console.log(tripId, eventName, eventCategory, eventTotalPrice, eventStartDate, eventEndDate, eventLocation);
-
-	fetch("/addEvent", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json"
-		},
-		body: JSON.stringify({
-			tripId: tripId,
-			eventName: eventName,
-			eventCategory: eventCategory,
-			eventTotalPrice: eventTotalPrice,
-			eventStartDate: eventStartDate,
-			eventEndDate: eventEndDate,
-			eventLocation: eventLocation
-		}),
-	}).then(function (response) {
-		checkSession(response);
-		if (!response.ok) {
-			return response.json().then(function (data) {
-				throw new Error(data.error || "Could not create trip");
-			});
-		}
-		return response.json();
-	}).then(function () {
-		addEventModalForm.reset();
-		addEventModal.style.display = "none";
-		loadTrips();
-	}).catch(function (error) {
-		addEventFeedback.textContent = error.message;
-	}).finally(function () {
-		createButton.disabled = false;
-	});
-});
-*/
-
-
 // Load trips from database
 function loadTrips() {
     fetch("/trips")
