@@ -5,6 +5,14 @@ let events = [];
 let selectedTrip = null;
 let tripId = Number(new URLSearchParams(window.location.search).get("tripId"));
 
+console.log(tripId);
+
+let editButton = document.getElementById("editEventButton");
+let cancelEditButton = document.getElementById("cancelEditButton");
+let detailsModal = document.getElementById("detailsModal");
+let deleteEventButton = document.getElementById("deleteEventButton");
+let saveChangesButton = document.getElementById("saveChangesButton");
+
 function dateText(year, month, day) {
     return year + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
 }
@@ -121,6 +129,13 @@ function showEventDetails(item) {
         ? "Not set" : price.toLocaleString("en-US", { style: "currency", currency: "USD" });
     document.getElementById("detailsModal").style.display = "flex";
     document.getElementById("closeDetailsModal").focus();
+	detailsModal.dataset.eventId = item.id;
+    	document.getElementById("editEventName").value = item.event_name || "Event";
+	document.getElementById("editCategory").value = item.category || "Not set";
+	document.getElementById("editStartDate").value = item.start_date;
+	document.getElementById("editEndDate").value = item.end_date || "item.start_date";
+	document.getElementById("editPrice").value = item.total_price;
+	document.getElementById("editEventLocation").value = item.location || "Not set";
 }
 
 function addEvent(date) {
@@ -265,7 +280,12 @@ document.getElementById("eventStartDate").addEventListener("change", function ()
 
 function closeModal(id) { document.getElementById(id).style.display = "none"; }
 document.getElementById("closeEventModal").addEventListener("click", function () { closeModal("eventModal"); });
-document.getElementById("closeDetailsModal").addEventListener("click", function () { closeModal("detailsModal"); });
+
+document.getElementById("closeDetailsModal").addEventListener("click", function () { 
+	closeModal("detailsModal"); 
+	detailsModal.classList.remove('editing');
+});
+
 window.addEventListener("click", function (event) {
     if (event.target.id === "eventModal" || event.target.id === "detailsModal") closeModal(event.target.id);
 });
@@ -287,6 +307,70 @@ document.getElementById("next").addEventListener("click", function () {
 document.getElementById("today").addEventListener("click", function () {
     currentDate = new Date();
     showCalendar();
+});
+
+editButton.addEventListener("click", function (e) {
+	e.preventDefault();
+	detailsModal.classList.add("editing");    
+});
+
+cancelEditButton.addEventListener("click", function (e) {
+	e.preventDefault();
+	detailsModal.classList.remove("editing");
+});
+
+deleteEventButton.addEventListener("click", function () {
+	let eventId = detailsModal.dataset.eventId;
+
+	fetch("/deleteEvent", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			eventId: eventId,
+			tripId: tripId
+		}),
+	}).then(function (response) {
+		return checkResponse(response, "Could not delete event"); 
+	}).then(function (data) {
+		closeModal("detailsModal"); 
+		detailsModal.classList.remove("editing");
+		loadEvents();
+	}).catch(function (error) {
+		console.log(error);
+	});
+});
+
+saveChangesButton.addEventListener("click", function () {
+	let eventId = detailsModal.dataset.eventId;
+	let eventName = document.getElementById("editEventName").value;
+	let eventCategory = document.getElementById("editCategory").value;
+	let startDate = document.getElementById("editStartDate").value;
+	let endDate = document.getElementById("editEndDate").value;
+	let eventLocation = document.getElementById("editEventLocation").value;
+	let price = document.getElementById("editPrice").value;
+
+	fetch("/editEvent", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			tripId: tripId,
+			eventId: eventId,
+			eventName: eventName,
+			eventCategory: eventCategory,
+			startDate: startDate,
+			endDate: endDate,
+			eventLocation: eventLocation,
+			price: price
+		}),
+	}).then(function (response) {
+		return checkResponse(response, "Could not edit event");
+	}).then(function (data) {
+		closeModal("detailsModal");
+		detailsModal.classList.remove("editing");
+		loadEvents();
+	}).catch(function (error) {
+		console.log(error);
+	});
 });
 
 loadNavbar();

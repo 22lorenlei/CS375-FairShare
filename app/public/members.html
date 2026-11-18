@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>FairShare Members</title>
+		<link rel="stylesheet" href="style.css">
+		<link rel="stylesheet" href="members.css">
+	</head>
+	<body>
+		<div id="navbar"></div>
+		<main class="container">
+			<div class="page-heading">
+				<div>
+					<h1 id="memberPageHeader"> Members </h1>
+				</div>
+				<button id="inviteMemberButton" class="dark-button">
+					Invite Member
+				</button>
+			</div>
+
+			<div class="members-container">
+				<table id="membersTable" class="members-table">
+				</table>
+
+				<div id="members-code-div">
+					<form class="standard-form">
+						<label> Email </label>
+						<input id="email" type="text" placeholder="e.g. testing@gmail.com"> 
+
+						<label> Code </label>
+						<input id="code" type="text" placeholder="e.g. enter secret code">
+					</form>
+				</div>
+				<p id="feedback"> </p>
+			</div>
+
+			<script src="members.js"></script>
+		</main>
+	</body>
+</html>

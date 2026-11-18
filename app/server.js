@@ -5,6 +5,7 @@ const pg = require("pg");
 const path = require("path");
 const argon2 = require("argon2");
 const session = require("express-session");
+const pgSession = require("connect-pg-simple")(session);
 const crypto = require("crypto");
 
 const app = express();
@@ -17,11 +18,29 @@ const pool = new pg.Pool(env);
 
 app.use(express.json());
 // Remember the logged-in user on the server.
+
+/*
 app.use(session({
     secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex"),
     resave: false,
     saveUninitialized: false,
     cookie: { httpOnly: true, sameSite: "lax", maxAge: 24 * 60 * 60 * 1000 }
+}));
+*/
+
+app.use(session({
+    store: new pgSession({
+        pool: pool,
+        createTableIfMissing: true
+    }),
+    secret: env["session_secret"],
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    }
 }));
 
 function requireLogin(req, res, next) {
@@ -488,7 +507,7 @@ app.post("/deleteEvent", requireLogin, async (req, res) => {
 	let tripId = req.body.tripId;
 	let eventId = req.body.eventId;
 
-	let sql = `DELETE FROM events WHERE (id=($1) AND tripId=($2))`;
+	let sql = `DELETE FROM events WHERE (id=($1) AND travel_groups_id=($2))`;
 	let values = [eventId, tripId];
 
 	try {
@@ -502,6 +521,118 @@ app.post("/deleteEvent", requireLogin, async (req, res) => {
 			message: "Database problem"
 		});
 	}
+});
+
+app.post("/editEvent", requireLogin, async (req, res) => {
+	let userId = req.session.user.id;
+	if (!Number.isInteger(userId) || userId < 1) {
+		res.status(400).json({ error: "Invalid user" });
+		return;
+	}
+
+	let tripId = req.body.tripId;
+	let eventId = req.body.eventId;
+	let eventName = req.body.eventName;
+	let eventCategory= req.body.eventCategory;
+	let startDate = req.body.startDate;
+	let endDate = req.body.endDate;
+	let eventLocation = req.body.eventLocation;
+	let price = req.body.price;
+
+	let sql = `
+		UPDATE events 
+		SET 
+		event_name=($1),
+		category=($2),
+		start_date=($3),
+		end_date=($4),
+		location=($5),
+		total_price=($6)
+		WHERE (id=($7) AND travel_groups_id=($8))
+	`;
+
+	console.log(tripId, eventId, eventName, startDate, endDate, eventLocation, price);
+
+	let values = [
+		eventName,
+		eventCategory,
+		startDate,
+		endDate,
+		eventLocation,
+		price,
+		eventId,
+		tripId
+	];
+
+	try {
+		await pool.query(sql, values);
+		res.status(200).json({
+			message: "Event edited successfully"
+		});
+	} catch (error) {
+		console.log(error);
+		res.status(400).json({
+			message: "Database problem"
+		});
+	}
+});
+
+app.post("/populateMembers", requireLogin, async (req, res) => {
+	let userId = req.session.user.id;
+	if (!Number.isInteger(userId) || userId < 1) {
+		res.status(400).json({ error: "Invalid user" });
+		return;
+	}
+
+	let tripId = req.body.tripId;
+
+	let sql = `
+	SELECT u.*
+	FROM group_members gm
+	INNER JOIN users u
+		ON gm.user_id = u.id
+	WHERE gm.group_id=($1)
+	`;
+
+	let values = [tripId];
+	console.log(values);
+
+	try {
+		let result = await pool.query(sql, values);
+		console.log(result.rows);
+		res.status(200).json({
+			message: "Members retrieved successfully",
+			contents: result.rows
+		});
+	} catch (error) {
+		console.log(error);
+		res.status(400).json({
+			message: "Database problem"
+		});
+	}
+});
+
+app.post("/inviteMember", requireLogin, async (req, res) => {
+	/*
+	let userId = req.session.user.id;
+	if (!Number.isInteger(userId) || userId < 1) {
+		res.status(400).json({ error: "Invalid user" });
+		return;
+	}
+	let tripId = req.body.tripId;
+	let email = req.body.email;
+	let code = req.body.code;
+
+	*/
+	try {
+		res.status(200).json({
+			message: "Member invited successfully"
+		});
+	} catch (error) {
+		res.status(400).json({
+			message: "Database problem"
+		});
+	};
 });
 
 // Travel searches use the same membership rules as the trip list.
@@ -566,14 +697,105 @@ function getFlightSlice(slice) {
   };
 }
 
+app.get(
+  "/api/trips/:tripId/overview",
+  requireLogin,
+  requireTripMember,
+  (req, res) => {
+    let tripId = req.params.tripId;
+
+    let tripQuery = `
+        SELECT
+            travel_groups.id,
+            travel_groups.name,
+            travel_groups.destination,
+            travel_groups.start_date,
+            travel_groups.end_date,
+            travel_groups.starting_budget,
+            COUNT(DISTINCT group_members.user_id)::INTEGER AS member_count
+        FROM travel_groups
+        LEFT JOIN group_members
+            ON travel_groups.id = group_members.group_id
+        WHERE travel_groups.id = $1
+        GROUP BY travel_groups.id
+    `;
+
+    let eventQuery = `
+        SELECT
+            id,
+            event_name,
+            category,
+            total_price,
+            start_date,
+            end_date,
+            location
+        FROM events
+        WHERE travel_groups_id = $1
+        ORDER BY start_date, id
+    `;
+
+    Promise.all([
+      pool.query(tripQuery, [tripId]),
+      pool.query(eventQuery, [tripId]),
+    ])
+      .then((results) => {
+        let tripResult = results[0];
+        let eventResult = results[1];
+
+        if (tripResult.rows.length == 0) {
+          res.status(404);
+          res.json({ error: "Trip not found" });
+          return;
+        }
+
+        let trip = tripResult.rows[0];
+        let events = eventResult.rows;
+
+        let totalSpent = 0;
+
+        for (let i = 0; i < events.length; i++) {
+          if (events[i].total_price != null) {
+            totalSpent += Number(events[i].total_price);
+          }
+        }
+
+        let startingBudget = Number(trip.starting_budget);
+
+        let remainingBudget = startingBudget - totalSpent;
+
+        res.json({
+          trip: trip,
+          total_spent: totalSpent,
+          remaining_budget: remainingBudget,
+          events: events,
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+
+        res.status(500);
+        res.json({ error: "Database error" });
+      });
+  },
+);
+
 app.get("/api/trips/:tripId", requireLogin, requireTripMember, (req, res) => {
   let tripId = req.params.tripId;
 
   pool
     .query(
-      `SELECT id, name AS trip_name, destination, start_date, end_date
-    FROM travel_groups
-    WHERE id = $1`,
+      `SELECT
+        travel_groups.id,
+        travel_groups.name AS trip_name,
+        travel_groups.destination,
+        travel_groups.start_date,
+        travel_groups.end_date,
+        COUNT(group_members.user_id)::INTEGER AS member_count
+      FROM travel_groups
+      JOIN group_members
+        ON travel_groups.id = group_members.group_id
+      WHERE travel_groups.id = $1
+      GROUP BY travel_groups.id`,
       [tripId],
     )
     .then((result) => {

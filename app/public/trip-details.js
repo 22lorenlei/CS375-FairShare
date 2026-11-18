@@ -1,4 +1,10 @@
-let tripId = new URLSearchParams(window.location.search).get("id");
+let expenseParams = new URLSearchParams(window.location.search);
+let tripId = expenseParams.get("tripId") || expenseParams.get("id");
+if (tripId) {
+    expenseParams.set("tripId", tripId);
+    window.history.replaceState(null, "", window.location.pathname + "?" + expenseParams.toString());
+    loadTripNavigation("expenses");
+}
 let tripData;
 let expenses = [];
 let showAll = false;
@@ -41,16 +47,12 @@ fetch("/navbar.html")
 
 async function loadTrip() {
     if (!tripId || !/^\d+$/.test(tripId) || !Number.isSafeInteger(Number(tripId)) || Number(tripId) < 1) {
-        document.getElementById("tripTitle").textContent = "Trip unavailable";
         pageMessage.textContent = "Choose a trip from My Trips to continue.";
         return;
     }
     try {
         tripData = await request("/trips/" + tripId);
         document.title = "FairShare - " + tripData.trip.name;
-        document.getElementById("tripTitle").textContent = tripData.trip.name;
-        document.getElementById("travelLink").href = "/travel.html?tripId=" + encodeURIComponent(tripId);
-        document.getElementById("itineraryLink").href = "/itinerary.html?tripId=" + encodeURIComponent(tripId);
         tripData.members.forEach(function (member) {
             let option = document.createElement("option");
             option.value = member.id;
@@ -134,18 +136,6 @@ function renderExpenses() {
 document.getElementById("viewAllExpenses").addEventListener("click", function () {
     showAll = !showAll;
     renderExpenses();
-});
-document.querySelectorAll("[data-section]").forEach(function (button) {
-    button.addEventListener("click", function () {
-        if (!tripData) return;
-        document.querySelectorAll("[data-section]").forEach(function (tab) {
-            tab.classList.remove("active-tab");
-            tab.removeAttribute("aria-current");
-        });
-        button.classList.add("active-tab");
-        button.setAttribute("aria-current", "page");
-        document.getElementById("expensesSection").hidden = button.dataset.section !== "Expenses";
-    });
 });
 document.getElementById("openExpense").addEventListener("click", function () {
     form.reset();

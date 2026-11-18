@@ -10,19 +10,7 @@
 <body>
 <div id="navbar"></div>
 <main class="container">
-    <header class="trip-heading">
-        <a href="/trips.html" class="back-link">&larr; My Trips</a>
-        <h1 id="tripTitle">Loading trip…</h1>
-    </header>
-    <nav class="tabs trip-tabs" aria-label="Trip sections">
-        <button class="tab" data-section="Overview">Overview</button>
-        <a class="tab" id="itineraryLink" href="/trips.html">Itinerary</a>
-        <button class="tab active-tab" data-section="Expenses" aria-current="page">Expenses</button>
-        <button class="tab" data-section="Receipts">Receipts</button>
-        <button class="tab" data-section="Members">Members</button>
-        <a class="tab" id="travelLink" href="/trips.html">Travel</a>
-        <button class="tab" data-section="Budget">Budget</button>
-    </nav>
+    <div id="trip-header"></div>
     <p id="pageMessage" role="status"></p>
     <section id="expensesSection" hidden>
         <div class="page-heading">
@@ -63,6 +51,7 @@
         <button id="saveExpense" type="submit" class="dark-button">Save Expense</button>
     </form>
 </dialog>
+<script src="trip-navbar.js"></script>
 <script src="trip-details.js"></script>
 </body>
 </html>

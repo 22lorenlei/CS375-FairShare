@@ -2,61 +2,67 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>FairShare Travel</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>FairShare - Travel</title>
+
+    <link rel="stylesheet" href="style.css" />
   </head>
-  <body class="travel-page">
-    <h1>Travel</h1>
 
-    <div>
-      <h2 id="trip-name">Trip</h2>
-      <p id="trip-destination"></p>
-      <p id="trip-dates"></p>
-    </div>
+  <body>
+    <div id="navbar"></div>
 
-    <h2>Search Flights</h2>
+    <main class="container">
+      <div id="trip-header"></div>
 
-    <label for="origin">Flying From:</label>
-    <input id="origin" type="text" placeholder="PHL" />
+      <div class="trip-content travel-page">
+        <h2>Travel</h2>
 
-    <br /><br />
+        <p class="subtitle">
+          Search for flights, hotels, and activities for this trip.
+        </p>
 
-    <label for="travelers">Travelers:</label>
-    <input id="travelers" type="number" value="1" min="1" />
+        <hr />
 
-    <br /><br />
+        <h2>Search Flights</h2>
 
-    <button id="search-flights">Search Flights</button>
+        <label for="origin">Flying From</label>
 
-    <p id="message"></p>
+        <input id="origin" type="text" placeholder="PHL" />
 
-    <div id="flight-results"></div>
+        <br /><br />
 
-    <hr />
+        <button id="search-flights" class="dark-button">Search Flights</button>
 
-    <h2>Search Hotels</h2>
+        <p id="message"></p>
 
-    <label for="guests">Guests:</label>
-    <input id="guests" type="number" value="2" min="1" />
+        <div id="flight-results"></div>
 
-    <br /><br />
+        <hr />
 
-    <button id="search-hotels">Search Hotels</button>
+        <h2>Search Hotels</h2>
 
-    <p id="hotel-message"></p>
+        <button id="search-hotels" class="dark-button">Search Hotels</button>
 
-    <div id="hotel-results"></div>
+        <p id="hotel-message"></p>
 
-    <hr />
+        <div id="hotel-results"></div>
 
-    <h2>Search Activities</h2>
+        <hr />
 
-    <button id="search-activities">Search Activities</button>
+        <h2>Search Activities</h2>
 
-    <p id="activity-message"></p>
+        <button id="search-activities" class="dark-button">
+          Search Activities
+        </button>
 
-    <div id="activity-results"></div>
+        <p id="activity-message"></p>
 
+        <div id="activity-results"></div>
+      </div>
+    </main>
+
+    <script src="trip-navbar.js"></script>
     <script src="travel.js"></script>
   </body>
 </html>

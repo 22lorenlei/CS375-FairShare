@@ -107,16 +107,6 @@ closeMembersButton.addEventListener("click", function () {
     membersModal.style.display = "none";
 });
 
-// Close Add Event modal with X button
-closeAddEventModal.addEventListener("click", function () {
-    addEventModal.style.display = "none";
-});
-
-// Close Edit Event modal with X button
-closeEditEventModal.addEventListener("click", function() {
-    editEventModal.style.display = "none"; 
-});
-
 // Create a new trip
 tripForm.addEventListener("submit", function (event) {
     event.preventDefault();
@@ -180,63 +170,6 @@ tripForm.addEventListener("submit", function (event) {
     });
 });
 
-addEventModalForm.addEventListener("submit", function(event) {
-	event.preventDefault();
-
-	let tripId = selectedTripId;
-	let eventName = document.getElementById("eventName").value;
-	let eventCategory = document.getElementById("eventCategory").value;
-	let eventTotalPrice = document.getElementById("eventTotalPrice").value;
-	let eventStartDate = document.getElementById("eventStartDate").value;
-	let eventEndDate = document.getElementById("eventEndDate").value;
-	let eventLocation = document.getElementById("eventLocation").value;
-
-	let addEventFeedback = document.getElementById("addEventFeedback");
-
-	if (eventEndDate < eventStartDate) {
-		addEventFeedback.textContent = "End date must be equal or after start date";		
-		return;
-	}
-
-	let createButton = document.getElementById("createTrip");
-	createButton.disabled = true;
-
-	console.log(tripId, eventName, eventCategory, eventTotalPrice, eventStartDate, eventEndDate, eventLocation);
-
-	fetch("/addEvent", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json"
-		},
-		body: JSON.stringify({
-			tripId: tripId,
-			eventName: eventName,
-			eventCategory: eventCategory,
-			eventTotalPrice: eventTotalPrice,
-			eventStartDate: eventStartDate,
-			eventEndDate: eventEndDate,
-			eventLocation: eventLocation
-		}),
-	}).then(function (response) {
-		checkSession(response);
-		if (!response.ok) {
-			return response.json().then(function (data) {
-				throw new Error(data.error || "Could not create trip");
-			});
-		}
-		return response.json();
-	}).then(function () {
-		addEventModalForm.reset();
-		addEventModal.style.display = "none";
-		loadTrips();
-	}).catch(function (error) {
-		addEventFeedback.textContent = error.message;
-	}).finally(function () {
-		createButton.disabled = false;
-	});
-});
-
-
 // Load trips from database
 function loadTrips() {
     fetch("/trips")
@@ -292,35 +225,6 @@ function loadEvents() {
 		console.log(error);
 	});
 }
-
-function deleteEvent(tripId, eventId) {
-	/*
-	fetch("/deleteEvent", {
-		method: "POST",
-                headers: {
-                       "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-			tripId: tripId,
-			eventId: eventId
-		}),
-	}).then(function (response) {
-		checkSession(response);
-		if (!response.ok) {
-			return response.json().then(function (data) {
-				throw new Error(data.error || "Could not create trip");
-			});
-		}
-		return response.json();
-	}).then(function (data) {
-		console.log(data);
-	        editEventModalTable.add	
-	}).catch(function (error) {
-		console.log(error);
-	});
-	*/
-}
-
 
 // Format a date without timezone changes
 function formatDate(dateString) {
@@ -392,18 +296,14 @@ function displayTrips() {
         let buttons = document.createElement("div");
         buttons.className = "trip-buttons";
 
-	let addEventButton = document.createElement("button");
-	addEventButton.className = "view-button";
-	addEventButton.textContent = "Add Event";
-
         let viewButton = document.createElement("button");
         viewButton.className = "view-button";
         viewButton.textContent = "View Trip";
         viewButton.addEventListener("click", function () {
-            window.location.href = "/trip-details.html?id=" + encodeURIComponent(trip.id);
+            window.location.href = "/trip.html?tripId=" + encodeURIComponent(trip.id);
         });
 
-        // Keep the calendar directly accessible from My Trips.
+        // Keep View Trip going to travel searches, and provide a separate calendar link.
         let itineraryButton = document.createElement("button");
         itineraryButton.className = "view-button";
         itineraryButton.textContent = "Itinerary";
@@ -415,10 +315,6 @@ function displayTrips() {
         addMembersButton.className = "view-button";
         addMembersButton.textContent = "Add Members";
 
-	let editEventButton = document.createElement("button");
-	editEventButton.className = "view-button";
-	editEventButton.textContent = "Edit Events";
-
         addMembersButton.addEventListener("click", function () {
             selectedTripId = trip.id;
             membersMessage.textContent = "";
@@ -426,23 +322,18 @@ function displayTrips() {
             membersModal.style.display = "flex";
         });
 
-	addEventButton.addEventListener("click", function () {
-	    selectedTripId = trip.id; 
-	    addEventModalForm.reset();
-	    addEventModal.style.display = "flex";
-	});
+	let membersPageButton = document.createElement("button");
+	membersPageButton.className = "view-button";
+	membersPageButton.textContent = "Members Page";
 
-	editEventButton.addEventListener("click", function () {
-	    selectedTripId = trip.id;
-	    loadEvents(); 
-	    editEventModal.style.display = "flex";	
+	membersPageButton.addEventListener("click", function () {
+		window.location.href = "/members.html?tripId=" + encodeURIComponent(trip.id);
 	});
 
         buttons.appendChild(viewButton);
         buttons.appendChild(itineraryButton);
         buttons.appendChild(addMembersButton);
-	buttons.appendChild(addEventButton);
-	buttons.appendChild(editEventButton);
+	buttons.appendChild(membersPageButton);
 
         details.appendChild(title);
         details.appendChild(dates);

@@ -105,16 +105,56 @@
 </div>
 
 <div id="detailsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailsTitle">
-    <div class="modal-content itinerary-modal-content event-details-content">
+    <div id="viewModalForm" class="modal-content itinerary-modal-content event-details-content">
         <button type="button" id="closeDetailsModal" class="close-button" aria-label="Close">&times;</button>
-        <p class="calendar-label">EVENT DETAILS</p>
-        <h1 id="detailsTitle">Event</h1>
-        <dl class="event-details">
-            <div><dt>Category</dt><dd id="detailCategory"></dd></div>
-            <div><dt>Dates</dt><dd id="detailDates"></dd></div>
-            <div><dt>Location</dt><dd id="detailLocation"></dd></div>
-            <div><dt>Total price</dt><dd id="detailPrice"></dd></div>
-        </dl>
+
+	<div class="modal-header-row">
+		<p class="calendar-label">EVENT DETAILS</p>
+		<h1 id="detailsTitle">Event</h1>
+		<!-- VIEW MODE CONTENT -->
+		<div id="viewModeContent">
+			    <button id="deleteEventButton" type="button" class="view-button"> Delete </button>
+			    <button id="editEventButton" type="button" class="view-button"> Edit </button>
+		</div>
+
+		<!-- EDIT MODE CONTENT -->
+		<div id="editActions">
+			    <button id="cancelEditButton" type="button" class="view-button"> Cancel </button>
+			    <button id="saveChangesButton" type="button" class="view-button"> Save Changes </button>
+		</div>
+	</div>
+
+	<div id="viewModeDetails">
+		<dl class="event-details">
+		    <div><dt>Category</dt><dd id="detailCategory"></dd></div>
+		    <div><dt>Dates</dt><dd id="detailDates"></dd></div>
+		    <div><dt>Location</dt><dd id="detailLocation"></dd></div>
+		    <div><dt>Total price</dt><dd id="detailPrice"></dd></div>
+		</dl>
+	</div>
+
+	<!-- EDIT MODAL FORM -->
+	<form id="editModalForm" class="standard-form">
+		<label for="editEventName"> Event Name </label>
+		<input id="editEventName" type="text" required>
+
+		<label for="editCategory"> Edit Category </label>
+		<input id="editCategory" type="text" required>
+
+		<div class="itineary-form-dates">
+			<label for="editStartDate"> Edit Start Date </label>
+			<input id="editStartDate" type="date" required>
+
+			<label for="editEndDate"> Edit End Date </label>
+			<input id="editEndDate" type="date" required>
+		</div>
+
+		<label for="editEventLocation"> Edit Event Location </label>
+		<input id="editEventLocation" type="text" maxlength="100" required>
+
+		<label for="editPrice"> Edit Price </label>
+		<input id="editPrice" type="float" required>
+	</form>
     </div>
 </div>
 
