@@ -68,6 +68,10 @@ function populateMembersTable() {
 	});
 }
 
+/*
+Add some feature where you are added to the group if you know the code...
+*/
+
 loadNavbar();
 populateMembersTable();
 

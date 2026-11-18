@@ -4,13 +4,24 @@
 		<meta charset="utf-8" />
 		<title>FairShare Members</title>
 		<link rel="stylesheet" href="style.css">
+		<link rel="stylesheet" href="members.css">
 	</head>
 	<body>
 		<div id="navbar"></div>
-		<h1> Members </h1>
+		<h1 id="memberPageHeader"> Members </h1>
 
-		<table id="membersTable">
-		</table>
+		<div class="members-container">
+			<table id="membersTable" class="members-table">
+			</table>
+
+			<form class="standard-form">
+				<label> Email </label>
+				<input type="text" placeholder="e.g. testing@gmail.com"> 
+
+				<label> Code </label>
+				<input type="text" placeholder="e.g. enter secret code">
+			</form>
+		</div>
 
 		<script src="members.js"></script>
 	</body>
