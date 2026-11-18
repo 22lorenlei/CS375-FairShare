@@ -14,7 +14,7 @@
 .members-container {
 	display: flex;
 	align-items: flex-start;
-	gap: 10%;
+	gap: 5%;
 	width: 100%;
 	font-family: sans-serif;
 }
@@ -27,3 +27,11 @@
 .members-table tbody tr:last-child td {
 	border-bottom: none;
 }
+
+#members-code-div {
+	margin-right: 5%;
+	background-color: white;
+	padding: 32px 20px;
+	border-radius: 8px;
+}
+

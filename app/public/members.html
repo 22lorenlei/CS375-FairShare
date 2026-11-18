@@ -8,21 +8,33 @@
 	</head>
 	<body>
 		<div id="navbar"></div>
-		<h1 id="memberPageHeader"> Members </h1>
+		<main class="container">
+			<div class="page-heading">
+				<div>
+					<h1 id="memberPageHeader"> Members </h1>
+				</div>
+				<button id="inviteMemberButton" class="dark-button">
+					Invite Member
+				</button>
+			</div>
 
-		<div class="members-container">
-			<table id="membersTable" class="members-table">
-			</table>
+			<div class="members-container">
+				<table id="membersTable" class="members-table">
+				</table>
 
-			<form class="standard-form">
-				<label> Email </label>
-				<input type="text" placeholder="e.g. testing@gmail.com"> 
+				<div id="members-code-div">
+					<form class="standard-form">
+						<label> Email </label>
+						<input id="email" type="text" placeholder="e.g. testing@gmail.com"> 
 
-				<label> Code </label>
-				<input type="text" placeholder="e.g. enter secret code">
-			</form>
-		</div>
+						<label> Code </label>
+						<input id="code" type="text" placeholder="e.g. enter secret code">
+					</form>
+				</div>
+				<p id="feedback"> </p>
+			</div>
 
-		<script src="members.js"></script>
+			<script src="members.js"></script>
+		</main>
 	</body>
 </html>

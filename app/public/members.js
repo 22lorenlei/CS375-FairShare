@@ -1,5 +1,6 @@
 let membersTable = document.getElementById("membersTable"); 
 let tripId = Number(new URLSearchParams(window.location.search).get("tripId"));
+let inviteMembersButton = document.getElementById("inviteMembersButton");
 
 console.log("Getting this trip id:", tripId);
 
@@ -70,6 +71,36 @@ function populateMembersTable() {
 
 /*
 Add some feature where you are added to the group if you know the code...
+We could either use a third party service like formspree or we could 
+have it so there is a "mail" option and people can see what codes 
+they were invited too
+*/
+
+/*
+inviteMembersButton.addEventListener("click", function () {
+	let email = document.getElementById("email").value;
+	let code = document.getElementByid("code").value;
+
+	fetch("/inviteMember", {
+		"method": "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			tripId: tripId,
+			email: email,
+			code: code
+		}),
+	}).then(function (response) {
+		return checkResponse(response, "Could not edit event");
+	}).then(function (data) {
+		console.log(data):
+		document.getElementById("email").value = "";
+		document.getElementById("code").value = "";
+		let message = data.message;
+		document.getElementById("feedback").value = message;
+	}).catch(function (error) {
+		console.log(error);
+	});
+});
 */
 
 loadNavbar();

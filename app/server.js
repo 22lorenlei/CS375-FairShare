@@ -578,6 +578,29 @@ app.post("/populateMembers", requireLogin, async (req, res) => {
 	}
 });
 
+app.post("/inviteMember", requireLogin, async (req, res) => {
+	/*
+	let userId = req.session.user.id;
+	if (!Number.isInteger(userId) || userId < 1) {
+		res.status(400).json({ error: "Invalid user" });
+		return;
+	}
+	let tripId = req.body.tripId;
+	let email = req.body.email;
+	let code = req.body.code;
+
+	*/
+	try {
+		res.status(200).json({
+			message: "Member invited successfully"
+		});
+	} catch (error) {
+		res.status(400).json({
+			message: "Database problem"
+		});
+	};
+});
+
 // Travel searches use the same membership rules as the trip list.
 async function requireTripMember(req, res, next) {
     try {
