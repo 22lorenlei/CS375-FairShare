@@ -96,14 +96,23 @@ function renderExpenses() {
     (showAll ? expenses : expenses.slice(0, 3)).forEach(function (expense) {
         let row = document.createElement("tr");
         let date = new Date(expense.expense_date + "T00:00:00");
-        [date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-            expense.description, expense.category, money.format(Number(expense.amount)), expense.paid_by_username]
+        [expense.expense_date ? date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Not set",
+            expense.description, expense.category, expense.amount == null ? "Price unavailable" : money.format(Number(expense.amount)), expense.paid_by_username]
         .forEach(function (text) {
             let cell = document.createElement("td");
             cell.textContent = text;
             row.appendChild(cell);
         });
         let actions = document.createElement("td");
+        if (expense.source === "event") {
+            let link = document.createElement("a");
+            link.href = "/itinerary.html?tripId=" + encodeURIComponent(tripId);
+            link.textContent = "Manage in itinerary";
+            actions.appendChild(link);
+            row.appendChild(actions);
+            rows.appendChild(row);
+            return;
+        }
         let button = document.createElement("button");
         button.type = "button";
         button.className = "delete-expense";
@@ -115,7 +124,7 @@ function renderExpenses() {
             pageMessage.textContent = "";
             try {
                 await request("/trips/" + tripId + "/expenses/" + expense.id, { method: "DELETE" });
-                expenses = expenses.filter(function (item) { return item.id !== expense.id; });
+                expenses = expenses.filter(function (item) { return item.source !== expense.source || item.id !== expense.id; });
                 renderExpenses();
             } catch (error) {
                 pageMessage.textContent = error.message;

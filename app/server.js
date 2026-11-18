@@ -1245,11 +1245,27 @@ app.get("/trips/:tripId", requireLogin, requireTripMember, async (req, res) => {
 app.get("/trips/:tripId/expenses", requireLogin, requireTripMember, async (req, res) => {
     try {
         let result = await pool.query(
-            `SELECT expenses.id, expenses.description, expenses.category, expenses.amount,
-                    TO_CHAR(expense_date, 'YYYY-MM-DD') AS expense_date,
-                    users.username AS paid_by_username
-             FROM expenses JOIN users ON users.id = expenses.paid_by
-             WHERE group_id = $1 ORDER BY expense_date DESC, expenses.id DESC`, [req.params.tripId]);
+            `SELECT * FROM (
+                SELECT expenses.id, expenses.description, expenses.category, expenses.amount,
+                       TO_CHAR(expense_date, 'YYYY-MM-DD') AS expense_date,
+                       users.username AS paid_by_username, 'expense' AS source
+                FROM expenses JOIN users ON users.id = expenses.paid_by
+                WHERE group_id = $1
+                UNION ALL
+                SELECT events.id, event_name AS description,
+                       CASE LOWER(category)
+                           WHEN 'flight' THEN 'Transportation'
+                           WHEN 'hotel' THEN 'Lodging'
+                           ELSE 'Activities'
+                       END AS category,
+                       total_price AS amount,
+                       TO_CHAR(start_date, 'YYYY-MM-DD') AS expense_date,
+                       'Not recorded' AS paid_by_username, 'event' AS source
+                FROM events
+                WHERE travel_groups_id = $1
+                  AND LOWER(category) IN ('flight', 'hotel', 'excursion', 'activity', 'activities')
+             ) AS trip_expenses
+             ORDER BY expense_date DESC NULLS LAST, source, id DESC`, [req.params.tripId]);
         res.json({ expenses: result.rows });
     } catch (error) {
         console.log(error);
