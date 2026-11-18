@@ -5,6 +5,7 @@ const pg = require("pg");
 const path = require("path");
 const argon2 = require("argon2");
 const session = require("express-session");
+const pgSession = require("connect-pg-simple")(session);
 const crypto = require("crypto");
 
 const app = express();
@@ -17,11 +18,29 @@ const pool = new pg.Pool(env);
 
 app.use(express.json());
 // Remember the logged-in user on the server.
+
+/*
 app.use(session({
     secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex"),
     resave: false,
     saveUninitialized: false,
     cookie: { httpOnly: true, sameSite: "lax", maxAge: 24 * 60 * 60 * 1000 }
+}));
+*/
+
+app.use(session({
+    store: new pgSession({
+        pool: pool,
+        createTableIfMissing: true
+    }),
+    secret: env["session_secret"],
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    }
 }));
 
 function requireLogin(req, res, next) {
@@ -41,6 +60,17 @@ app.get("/trips.html", (req, res, next) => {
     if (!req.session.user) return res.redirect("/login.html");
     next();
 });
+
+app.get("/login.html", (req, res, next) => {
+    if (req.session.user) return res.redirect("/trips.html");
+    next();
+});
+
+app.get("/register.html", (req, res, next) => {
+    if (req.session.user) return res.redirect("/trips.html");
+    next();
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 
 app.post("/logout", (req, res) => {
@@ -60,6 +90,10 @@ app.post("/login", (req, res) => {
     let password = req.body.password;
     res.set("Cache-Control", "no-store");
 
+    if (typeof email !== "string" || typeof password !== "string" || email.includes(" ") || email.length < 5 || email.length > 100 || password.length < 8 || password.length > 64) {
+        return res.status(400).json({ message: "Invalid email or password" });
+    }
+
     pool.query(`SELECT * FROM users WHERE email = $1`, [email]).then((result) => {
         if (result.rows.length === 0) {
             res.status(200).send({ message: "Account doesn't exist" });
@@ -73,7 +107,7 @@ app.post("/login", (req, res) => {
                     // Remember the user before opening My Trips.
                     req.session.regenerate((error) => {
                         if (error) return res.status(500).json({ message: "Could not log in" });
-                        req.session.user = { id: user.id, username: user.username };
+                        req.session.user = { id: user.id, username: user.username, email: user.email};
                         req.session.save((error) => {
                             if (error) return res.status(500).json({ message: "Could not log in" });
                             res.status(200).json({ message: "Logged in!", loggedIn: true });
@@ -663,14 +697,105 @@ function getFlightSlice(slice) {
   };
 }
 
+app.get(
+  "/api/trips/:tripId/overview",
+  requireLogin,
+  requireTripMember,
+  (req, res) => {
+    let tripId = req.params.tripId;
+
+    let tripQuery = `
+        SELECT
+            travel_groups.id,
+            travel_groups.name,
+            travel_groups.destination,
+            travel_groups.start_date,
+            travel_groups.end_date,
+            travel_groups.starting_budget,
+            COUNT(DISTINCT group_members.user_id)::INTEGER AS member_count
+        FROM travel_groups
+        LEFT JOIN group_members
+            ON travel_groups.id = group_members.group_id
+        WHERE travel_groups.id = $1
+        GROUP BY travel_groups.id
+    `;
+
+    let eventQuery = `
+        SELECT
+            id,
+            event_name,
+            category,
+            total_price,
+            start_date,
+            end_date,
+            location
+        FROM events
+        WHERE travel_groups_id = $1
+        ORDER BY start_date, id
+    `;
+
+    Promise.all([
+      pool.query(tripQuery, [tripId]),
+      pool.query(eventQuery, [tripId]),
+    ])
+      .then((results) => {
+        let tripResult = results[0];
+        let eventResult = results[1];
+
+        if (tripResult.rows.length == 0) {
+          res.status(404);
+          res.json({ error: "Trip not found" });
+          return;
+        }
+
+        let trip = tripResult.rows[0];
+        let events = eventResult.rows;
+
+        let totalSpent = 0;
+
+        for (let i = 0; i < events.length; i++) {
+          if (events[i].total_price != null) {
+            totalSpent += Number(events[i].total_price);
+          }
+        }
+
+        let startingBudget = Number(trip.starting_budget);
+
+        let remainingBudget = startingBudget - totalSpent;
+
+        res.json({
+          trip: trip,
+          total_spent: totalSpent,
+          remaining_budget: remainingBudget,
+          events: events,
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+
+        res.status(500);
+        res.json({ error: "Database error" });
+      });
+  },
+);
+
 app.get("/api/trips/:tripId", requireLogin, requireTripMember, (req, res) => {
   let tripId = req.params.tripId;
 
   pool
     .query(
-      `SELECT id, name AS trip_name, destination, start_date, end_date
-    FROM travel_groups
-    WHERE id = $1`,
+      `SELECT
+        travel_groups.id,
+        travel_groups.name AS trip_name,
+        travel_groups.destination,
+        travel_groups.start_date,
+        travel_groups.end_date,
+        COUNT(group_members.user_id)::INTEGER AS member_count
+      FROM travel_groups
+      JOIN group_members
+        ON travel_groups.id = group_members.group_id
+      WHERE travel_groups.id = $1
+      GROUP BY travel_groups.id`,
       [tripId],
     )
     .then((result) => {

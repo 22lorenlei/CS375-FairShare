@@ -1,18 +1,12 @@
 let tripId = new URLSearchParams(window.location.search).get("tripId") || 1;
 
-let tripName = document.getElementById("trip-name");
-let tripDestination = document.getElementById("trip-destination");
-let tripDates = document.getElementById("trip-dates");
-
 let origin = document.getElementById("origin");
-let travelers = document.getElementById("travelers");
 
 let searchButton = document.getElementById("search-flights");
 
 let message = document.getElementById("message");
 let flightResults = document.getElementById("flight-results");
 
-let guests = document.getElementById("guests");
 let searchHotelsButton = document.getElementById("search-hotels");
 
 let hotelMessage = document.getElementById("hotel-message");
@@ -22,6 +16,11 @@ let searchActivitiesButton = document.getElementById("search-activities");
 
 let activityMessage = document.getElementById("activity-message");
 let activityResults = document.getElementById("activity-results");
+
+let tripStartDate = "";
+let tripEndDate = "";
+let tripMemberCount = 1;
+let tripLocation = "";
 
 function formatTime(dateTime) {
   let time = dateTime.substring(11, 16);
@@ -55,29 +54,57 @@ function formatDuration(duration) {
   return value;
 }
 
-fetch("/api/trips/" + tripId)
+// Load top navbar
+fetch("/navbar.html")
   .then((response) => {
-    return response.json();
+    return response.text();
   })
-  .then((body) => {
-    tripName.textContent = body.trip_name;
-    tripDestination.textContent = body.destination;
+  .then((html) => {
+    let documentCopy = new DOMParser().parseFromString(html, "text/html");
 
-    let startDate = body.start_date.substring(0, 10);
-    let endDate = body.end_date.substring(0, 10);
+    let navbar = documentCopy.querySelector("nav");
 
-    tripDates.textContent = startDate + " to " + endDate;
+    document.getElementById("navbar").appendChild(navbar);
+
+    document.getElementById("logout").addEventListener("click", () => {
+      fetch("/logout", {
+        method: "POST",
+      }).then(() => {
+        window.location.href = "/login.html";
+      });
+    });
   })
   .catch((error) => {
     console.log(error);
   });
 
+// Load trip information
+fetch("/api/trips/" + tripId)
+  .then((response) => {
+    return response.json();
+  })
+  .then((body) => {
+    tripStartDate = body.start_date.substring(0, 10);
+
+    tripEndDate = body.end_date.substring(0, 10);
+
+    tripMemberCount = body.member_count;
+
+    tripLocation = body.destination;
+  })
+  .catch((error) => {
+    console.log(error);
+  });
+
+// Load shared trip navigation
+loadTripNavigation("travel");
+
+// Search flights
 searchButton.addEventListener("click", () => {
   message.textContent = "";
   flightResults.textContent = "";
 
   let originValue = origin.value;
-  let travelerValue = travelers.value;
 
   let url =
     "/api/trips/" +
@@ -85,7 +112,7 @@ searchButton.addEventListener("click", () => {
     "/flights?origin=" +
     originValue +
     "&travelers=" +
-    travelerValue;
+    tripMemberCount;
 
   fetch(url)
     .then((response) => {
@@ -179,6 +206,59 @@ searchButton.addEventListener("click", () => {
             flightDiv.append(returnInfo);
           }
 
+          let addButton = document.createElement("button");
+          addButton.textContent = "Add to Trip";
+          addButton.className = "add-trip-button";
+
+          addButton.addEventListener("click", () => {
+            let startDate = flight.outbound.departing_at.substring(0, 10);
+            let endDate = startDate;
+
+            if (flight.returning != null) {
+              endDate = flight.returning.arriving_at.substring(0, 10);
+            }
+
+            let location =
+              flight.outbound.origin + " to " + flight.outbound.destination;
+
+            fetch("/addEvent", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                tripId: Number(tripId),
+                eventName:
+                  flight.airline +
+                  " " +
+                  flight.outbound.origin +
+                  " to " +
+                  flight.outbound.destination,
+                eventCategory: "Flight",
+                eventTotalPrice: Number(flight.price),
+                eventStartDate: startDate,
+                eventEndDate: endDate,
+                eventLocation: location,
+              }),
+            })
+              .then((response) => {
+                return response.json();
+              })
+              .then((body) => {
+                if (body.message == "Event added successfully") {
+                  addButton.textContent = "Added";
+                  addButton.disabled = true;
+                } else {
+                  console.log(body);
+                }
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+          });
+
+          flightDiv.append(addButton);
+
           flightResults.append(flightDiv);
         }
       }
@@ -188,13 +268,12 @@ searchButton.addEventListener("click", () => {
     });
 });
 
+// Search hotels
 searchHotelsButton.addEventListener("click", () => {
   hotelMessage.textContent = "";
   hotelResults.textContent = "";
 
-  let guestValue = guests.value;
-
-  let url = "/api/trips/" + tripId + "/hotels?guests=" + guestValue;
+  let url = "/api/trips/" + tripId + "/hotels?guests=" + tripMemberCount;
 
   fetch(url)
     .then((response) => {
@@ -268,6 +347,53 @@ searchHotelsButton.addEventListener("click", () => {
             hotelDiv.append(checkOut);
           }
 
+          let addButton = document.createElement("button");
+          addButton.textContent = "Add to Trip";
+          addButton.className = "add-trip-button";
+
+          addButton.addEventListener("click", () => {
+            let totalPrice = 0;
+
+            if (hotel.total_price != null) {
+              totalPrice = Number(
+                hotel.total_price.replace("$", "").replace(",", ""),
+              );
+            }
+
+            fetch("/addEvent", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                tripId: Number(tripId),
+                eventName: hotel.name,
+                eventCategory: "Hotel",
+                eventTotalPrice: totalPrice,
+                eventStartDate: tripStartDate,
+                eventEndDate: tripEndDate,
+
+                eventLocation: tripLocation,
+              }),
+            })
+              .then((response) => {
+                return response.json();
+              })
+              .then((body) => {
+                if (body.message == "Event added successfully") {
+                  addButton.textContent = "Added";
+                  addButton.disabled = true;
+                } else {
+                  console.log(body);
+                }
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+          });
+
+          hotelDiv.append(addButton);
+
           hotelResults.append(hotelDiv);
         }
       }
@@ -277,6 +403,7 @@ searchHotelsButton.addEventListener("click", () => {
     });
 });
 
+// Search activities
 searchActivitiesButton.addEventListener("click", () => {
   activityMessage.textContent = "";
   activityResults.textContent = "";
@@ -305,7 +432,6 @@ searchActivitiesButton.addEventListener("click", () => {
 
           if (activity.date != null) {
             let date = document.createElement("p");
-
             date.textContent = "Date: " + activity.date;
 
             activityDiv.append(date);
@@ -313,7 +439,6 @@ searchActivitiesButton.addEventListener("click", () => {
 
           if (activity.time != null) {
             let time = document.createElement("p");
-
             time.textContent = "Time: " + activity.time;
 
             activityDiv.append(time);
@@ -321,7 +446,6 @@ searchActivitiesButton.addEventListener("click", () => {
 
           if (activity.venue != null) {
             let venue = document.createElement("p");
-
             venue.textContent = "Venue: " + activity.venue;
 
             activityDiv.append(venue);
@@ -329,19 +453,83 @@ searchActivitiesButton.addEventListener("click", () => {
 
           if (activity.address != null) {
             let address = document.createElement("p");
-
             address.textContent = "Location: " + activity.address;
 
             activityDiv.append(address);
           }
 
+          let price = document.createElement("p");
+
           if (activity.price != null) {
-            let price = document.createElement("p");
-
             price.textContent = "Price: " + activity.price;
-
-            activityDiv.append(price);
+          } else {
+            price.textContent = "Price: Not available";
           }
+
+          activityDiv.append(price);
+
+          let addButton = document.createElement("button");
+          addButton.textContent = "Add to Trip";
+          addButton.className = "add-trip-button";
+
+          addButton.addEventListener("click", () => {
+            let activityPrice = null;
+
+            if (activity.price != null) {
+              let priceText = String(activity.price);
+
+              priceText = priceText.replace("$", "");
+              priceText = priceText.replace(",", "");
+
+              activityPrice = Number(priceText);
+
+              if (isNaN(activityPrice)) {
+                activityPrice = null;
+              }
+            }
+
+            let activityLocation = tripLocation;
+
+            if (activity.venue != null) {
+              activityLocation = activity.venue;
+            }
+
+            if (activity.address != null) {
+              activityLocation = activity.address;
+            }
+
+            fetch("/addEvent", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                tripId: Number(tripId),
+                eventName: activity.title,
+                eventCategory: "Excursion",
+                eventTotalPrice: activityPrice,
+                eventStartDate: tripStartDate,
+                eventEndDate: tripStartDate,
+                eventLocation: activityLocation,
+              }),
+            })
+              .then((response) => {
+                return response.json();
+              })
+              .then((body) => {
+                if (body.message == "Event added successfully") {
+                  addButton.textContent = "Added";
+                  addButton.disabled = true;
+                } else {
+                  console.log(body);
+                }
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+          });
+
+          activityDiv.append(addButton);
 
           activityResults.append(activityDiv);
         }

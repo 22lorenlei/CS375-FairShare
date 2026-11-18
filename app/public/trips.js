@@ -300,7 +300,7 @@ function displayTrips() {
         viewButton.className = "view-button";
         viewButton.textContent = "View Trip";
         viewButton.addEventListener("click", function () {
-            window.location.href = "/travel.html?tripId=" + encodeURIComponent(trip.id);
+            window.location.href = "/trip.html?tripId=" + encodeURIComponent(trip.id);
         });
 
         // Keep View Trip going to travel searches, and provide a separate calendar link.
