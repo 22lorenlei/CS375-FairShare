@@ -3,7 +3,7 @@ const axios = require("axios");
 const express = require("express");
 const pg = require("pg");
 const path = require("path");
-const bcrypt = require("bcrypt");
+const argon2 = require("argon2");
 const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
 const crypto = require("crypto");
@@ -60,6 +60,17 @@ app.get("/trips.html", (req, res, next) => {
     if (!req.session.user) return res.redirect("/login.html");
     next();
 });
+
+app.get("/login.html", (req, res, next) => {
+    if (req.session.user) return res.redirect("/trips.html");
+    next();
+});
+
+app.get("/register.html", (req, res, next) => {
+    if (req.session.user) return res.redirect("/trips.html");
+    next();
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 
 app.post("/logout", (req, res) => {
@@ -74,10 +85,14 @@ app.get("/auth/me", requireLogin, (req, res) => {
     res.json(req.session.user);
 });
 
-app.get("/login", (req, res) => {
-    let email = req.query.email;
-    let password = req.query.password;
+app.post("/login", (req, res) => {
+    let email = req.body.email;
+    let password = req.body.password;
     res.set("Cache-Control", "no-store");
+
+    if (typeof email !== "string" || typeof password !== "string" || email.includes(" ") || email.length < 5 || email.length > 100 || password.length < 8 || password.length > 64) {
+        return res.status(400).json({ message: "Invalid email or password" });
+    }
 
     pool.query(`SELECT * FROM users WHERE email = $1`, [email]).then((result) => {
         if (result.rows.length === 0) {
@@ -87,12 +102,12 @@ app.get("/login", (req, res) => {
             let user = result.rows[0];
 
             // compare inputted password with stored hashed password
-            return bcrypt.compare(password, user.password).then((isMatch) => {
+            return argon2.verify(user.password, password).then((isMatch) => {
                 if (isMatch) {
                     // Remember the user before opening My Trips.
                     req.session.regenerate((error) => {
                         if (error) return res.status(500).json({ message: "Could not log in" });
-                        req.session.user = { id: user.id, username: user.username };
+                        req.session.user = { id: user.id, username: user.username, email: user.email};
                         req.session.save((error) => {
                             if (error) return res.status(500).json({ message: "Could not log in" });
                             res.status(200).json({ message: "Logged in!", loggedIn: true });
@@ -122,7 +137,7 @@ app.post("/register", (req, res) => {
     }
 
 
-    bcrypt.hash(password, 10).then((hashedPassword) =>  {
+    argon2.hash(password).then((hashedPassword) =>  {
         pool.query(
         `INSERT INTO users(username, email, password)
             VALUES($1, $2, $3)
