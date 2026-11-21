@@ -994,12 +994,30 @@ app.get("/api/trips/:tripId/flights", requireLogin, requireTripMember, (req, res
 app.get("/api/trips/:tripId/hotels", requireLogin, requireTripMember, (req, res) => {
   let tripId = req.params.tripId;
   let guests = Number(req.query.guests);
+  let checkIn = req.query.checkIn;
+  let checkOut = req.query.checkOut;
 
   if (guests < 1) {
     res.status(400);
     res.json({
       error: "Invalid hotel search",
     });
+    return;
+  }
+
+  if (typeof checkIn !== "string" || typeof checkOut !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(checkIn) || !/^\d{4}-\d{2}-\d{2}$/.test(checkOut)) {
+    res.status(400).json({ error: "Please enter valid check-in and check-out dates" });
+    return;
+  }
+
+  let checkInDate = new Date(checkIn + "T00:00:00Z");
+  let checkOutDate = new Date(checkOut + "T00:00:00Z");
+
+  if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime()) ||
+      formatDate(checkInDate) !== checkIn || formatDate(checkOutDate) !== checkOut ||
+      checkOut <= checkIn) {
+    res.status(400).json({ error: "Check-out must be after a valid check-in date" });
     return;
   }
 
@@ -1024,14 +1042,19 @@ app.get("/api/trips/:tripId/hotels", requireLogin, requireTripMember, (req, res)
       let startDate = formatDate(trip.start_date);
       let endDate = formatDate(trip.end_date);
 
+      if (checkIn < startDate || checkOut > endDate) {
+        res.status(400).json({ error: "Hotel dates must be within the trip dates" });
+        return;
+      }
+
       return axios({
         method: "get",
         url: "https://serpapi.com/search",
         params: {
           engine: "google_hotels",
           q: trip.destination + " hotels",
-          check_in_date: startDate,
-          check_out_date: endDate,
+          check_in_date: checkIn,
+          check_out_date: checkOut,
           adults: guests,
           currency: "USD",
           gl: "us",

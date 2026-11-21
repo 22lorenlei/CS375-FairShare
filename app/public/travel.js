@@ -7,6 +7,8 @@ let searchButton = document.getElementById("search-flights");
 let message = document.getElementById("message");
 let flightResults = document.getElementById("flight-results");
 
+let hotelCheckIn = document.getElementById("hotel-check-in");
+let hotelCheckOut = document.getElementById("hotel-check-out");
 let searchHotelsButton = document.getElementById("search-hotels");
 
 let hotelMessage = document.getElementById("hotel-message");
@@ -87,6 +89,13 @@ fetch("/api/trips/" + tripId)
     tripStartDate = body.start_date.substring(0, 10);
 
     tripEndDate = body.end_date.substring(0, 10);
+
+    hotelCheckIn.min = tripStartDate;
+    hotelCheckIn.max = tripEndDate;
+    hotelCheckIn.value = tripStartDate;
+    hotelCheckOut.min = tripStartDate;
+    hotelCheckOut.max = tripEndDate;
+    hotelCheckOut.value = tripEndDate;
 
     tripMemberCount = body.member_count;
 
@@ -273,7 +282,26 @@ searchHotelsButton.addEventListener("click", () => {
   hotelMessage.textContent = "";
   hotelResults.textContent = "";
 
-  let url = "/api/trips/" + tripId + "/hotels?guests=" + tripMemberCount;
+  let checkIn = hotelCheckIn.value;
+  let checkOut = hotelCheckOut.value;
+
+  if (!checkIn || !checkOut) {
+    hotelMessage.textContent = "Please enter check-in and check-out dates";
+    return;
+  }
+
+  if (checkOut <= checkIn) {
+    hotelMessage.textContent = "Check-out must be after check-in";
+    return;
+  }
+
+  if (!tripStartDate || !tripEndDate || checkIn < tripStartDate || checkOut > tripEndDate) {
+    hotelMessage.textContent = "Hotel dates must be within the trip dates";
+    return;
+  }
+
+  let url = "/api/trips/" + tripId + "/hotels?guests=" + tripMemberCount +
+    "&checkIn=" + checkIn + "&checkOut=" + checkOut;
 
   fetch(url)
     .then((response) => {
@@ -332,19 +360,19 @@ searchHotelsButton.addEventListener("click", () => {
           }
 
           if (hotel.check_in_time != null) {
-            let checkIn = document.createElement("p");
+            let checkInTime = document.createElement("p");
 
-            checkIn.textContent = "Check In: " + hotel.check_in_time;
+            checkInTime.textContent = "Check In: " + hotel.check_in_time;
 
-            hotelDiv.append(checkIn);
+            hotelDiv.append(checkInTime);
           }
 
           if (hotel.check_out_time != null) {
-            let checkOut = document.createElement("p");
+            let checkOutTime = document.createElement("p");
 
-            checkOut.textContent = "Check Out: " + hotel.check_out_time;
+            checkOutTime.textContent = "Check Out: " + hotel.check_out_time;
 
-            hotelDiv.append(checkOut);
+            hotelDiv.append(checkOutTime);
           }
 
           let addButton = document.createElement("button");
@@ -370,8 +398,8 @@ searchHotelsButton.addEventListener("click", () => {
                 eventName: hotel.name,
                 eventCategory: "Hotel",
                 eventTotalPrice: totalPrice,
-                eventStartDate: tripStartDate,
-                eventEndDate: tripEndDate,
+                eventStartDate: checkIn,
+                eventEndDate: checkOut,
 
                 eventLocation: tripLocation,
               }),
