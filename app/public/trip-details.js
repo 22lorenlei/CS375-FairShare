@@ -104,6 +104,15 @@ function renderExpenses() {
             row.appendChild(cell);
         });
         let actions = document.createElement("td");
+        if (expense.receipt_id) {
+            let link = document.createElement("a");
+            link.href = "/receipts.html?tripId=" + encodeURIComponent(tripId) + "&receiptId=" + expense.receipt_id;
+            link.textContent = "View Receipt";
+            actions.appendChild(link);
+            row.appendChild(actions);
+            rows.appendChild(row);
+            return;
+        }
         if (expense.source === "event") {
             let link = document.createElement("a");
             link.href = "/itinerary.html?tripId=" + encodeURIComponent(tripId);

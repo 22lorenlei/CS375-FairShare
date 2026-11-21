@@ -25,6 +25,14 @@ function loadTripNavigation(activePage) {
       document.getElementById("expenses-link").href =
         "/trip-details.html?tripId=" + encodeURIComponent(tripId);
 
+      document.getElementById("receipts-link").href =
+        "/receipts.html?tripId=" + encodeURIComponent(tripId);
+
+      if (activePage == "receipts") {
+        document.getElementById("receipts-link").classList.add("active-trip-link");
+        document.getElementById("receipts-link").setAttribute("aria-current", "page");
+      }
+
       if (activePage == "expenses") {
         document.getElementById("expenses-link").classList.add("active-trip-link");
         document.getElementById("expenses-link").setAttribute("aria-current", "page");

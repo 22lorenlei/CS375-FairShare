@@ -1,0 +1,180 @@
+[hidden] {
+    display: none !important;
+}
+
+.receipt-card,
+.receipt-card-actions,
+.receipt-items-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.receipt-panel {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.receipt-card p,
+.receipt-muted {
+    color: #777;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.receipt-card h3 {
+    margin: 0 0 8px;
+}
+
+.receipt-card-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.receipt-dialog {
+    border: none;
+    border-radius: 12px;
+    background: #fafafa;
+    width: calc(100% - 32px);
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 32px;
+}
+
+.receipt-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.receipt-dialog h2 {
+    margin-top: 0;
+    padding-right: 24px;
+}
+
+.receipt-close {
+    position: absolute;
+    right: 16px;
+    top: 12px;
+    background: none;
+    border: none;
+    font-size: 30px;
+    color: #777;
+}
+
+.receipt-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+#receiptForm label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#receiptForm input:not([type="checkbox"]),
+#receiptForm select {
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font: inherit;
+    background: white;
+}
+
+.receipt-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    background: white;
+    min-width: 0;
+}
+
+.receipt-item legend {
+    font-size: 14px;
+    color: #666;
+}
+
+.receipt-item-fields {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 12px;
+}
+
+.receipt-delete {
+    background: white;
+    color: #b23328;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px 12px;
+}
+
+.receipt-totals {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    max-width: 400px;
+    margin-bottom: 28px;
+}
+
+.receipt-totals dd {
+    margin: 0;
+    text-align: right;
+}
+
+.receipt-totals dt:last-of-type,
+.receipt-totals dd:last-of-type {
+    font-weight: bold;
+}
+
+#receiptFormMessage {
+    color: #b23328;
+}
+
+#receiptFormMessage:empty {
+    display: none;
+}
+
+.receipt-table-scroll {
+    overflow-x: auto;
+}
+
+.receipt-table-scroll table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+.receipt-table-scroll th,
+.receipt-table-scroll td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #eee;
+}
+
+@media (max-width: 650px) {
+    .receipt-card,
+    .receipt-items-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .receipt-fields,
+    .receipt-item-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .receipt-dialog {
+        padding: 24px;
+    }
+}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FairShare - Receipts</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="receipts.css">
+</head>
+<body>
+<div id="navbar"></div>
+<main class="container">
+    <div id="trip-header"></div>
+    <div class="page-heading">
+        <div><h1>Receipts</h1><p>Add and view itemized receipts for your trip.</p></div>
+        <button id="addReceipt" class="dark-button" disabled>+ Add Receipt</button>
+    </div>
+    <p id="pageMessage" role="status"></p>
+    <div id="receiptList"></div>
+</main>
+<dialog id="receiptEditor" class="receipt-dialog" aria-labelledby="receiptEditorTitle">
+    <button type="button" class="receipt-close" id="closeReceiptEditor" aria-label="Close receipt form">&times;</button>
+    <h2 id="receiptEditorTitle">Add Receipt</h2>
+    <p class="receipt-muted">Enter receipt items to calculate the total.</p>
+    <form id="receiptForm">
+        <div class="receipt-fields">
+            <label>Store / Receipt name<input id="receiptTitle" maxlength="150" required></label>
+            <label>Date<input id="receiptDate" type="date" required></label>
+            <label>Category<select id="receiptCategory"><option>Food</option><option>Lodging</option><option>Transportation</option><option>Activities</option><option>Other</option></select></label>
+            <label>Paid by<select id="receiptPaidBy" required></select></label>
+        </div>
+        <div class="receipt-items-heading"><h3>Items</h3><button type="button" id="addReceiptItem" class="view-button">+ Add Item</button></div>
+        <div id="receiptItems"></div>
+        <div id="receiptPreview" class="receipt-panel" aria-live="polite"></div>
+        <p id="receiptFormMessage" role="alert"></p>
+        <button type="submit" id="saveReceipt" class="dark-button full-button">Save Receipt</button>
+    </form>
+</dialog>
+<dialog id="receiptViewer" class="receipt-dialog" aria-labelledby="receiptViewTitle">
+    <button type="button" class="receipt-close" id="closeReceiptViewer" aria-label="Close receipt">&times;</button>
+    <div id="receiptDetails"></div>
+</dialog>
+<script src="trip-navbar.js"></script>
+<script src="receipt-math.js"></script>
+<script src="receipts.js"></script>
+</body>
+</html>

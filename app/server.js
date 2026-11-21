@@ -7,6 +7,7 @@ const argon2 = require("argon2");
 const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
 const crypto = require("crypto");
+const { calculate: calculateReceipt } = require("./public/receipt-math");
 
 const app = express();
 
@@ -55,7 +56,7 @@ app.get("/", (req, res) => {
     res.redirect(req.session.user ? "/trips.html" : "/login.html");
 });
 
-app.get(["/trips.html", "/trip-details.html"], (req, res, next) => {
+app.get(["/trips.html", "/trip-details.html", "/receipts.html"], (req, res, next) => {
     res.set("Cache-Control", "no-store");
     if (!req.session.user) return res.redirect("/login.html");
     next();
@@ -1248,7 +1249,8 @@ app.get("/trips/:tripId/expenses", requireLogin, requireTripMember, async (req, 
             `SELECT * FROM (
                 SELECT expenses.id, expenses.description, expenses.category, expenses.amount,
                        TO_CHAR(expense_date, 'YYYY-MM-DD') AS expense_date,
-                       users.username AS paid_by_username, 'expense' AS source
+                       users.username AS paid_by_username, 'expense' AS source,
+                       (SELECT id FROM receipts WHERE expense_id = expenses.id) AS receipt_id
                 FROM expenses JOIN users ON users.id = expenses.paid_by
                 WHERE group_id = $1
                 UNION ALL
@@ -1260,7 +1262,7 @@ app.get("/trips/:tripId/expenses", requireLogin, requireTripMember, async (req, 
                        END AS category,
                        total_price AS amount,
                        TO_CHAR(start_date, 'YYYY-MM-DD') AS expense_date,
-                       'Not recorded' AS paid_by_username, 'event' AS source
+                       'Not recorded' AS paid_by_username, 'event' AS source, NULL::integer AS receipt_id
                 FROM events
                 WHERE travel_groups_id = $1
                   AND LOWER(category) IN ('flight', 'hotel', 'excursion', 'activity', 'activities')
@@ -1304,14 +1306,197 @@ app.delete("/trips/:tripId/expenses/:expenseId", requireLogin, requireTripMember
     let expenseId = Number(req.params.expenseId);
     if (!Number.isSafeInteger(expenseId) || expenseId < 1) return res.status(400).json({ error: "Invalid expense" });
     try {
-        let result = await pool.query("DELETE FROM expenses WHERE id = $1 AND group_id = $2 RETURNING id",
+        let result = await pool.query("DELETE FROM expenses WHERE id = $1 AND group_id = $2 AND NOT EXISTS (SELECT 1 FROM receipts WHERE expense_id = expenses.id) RETURNING id",
             [expenseId, req.params.tripId]);
-        if (!result.rows.length) return res.status(404).json({ error: "Expense not found" });
+        if (!result.rows.length) return res.status(409).json({ error: "Expense not found or linked to a receipt. Receipt expenses cannot be deleted in this version." });
         res.json({ message: "Expense deleted" });
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: "Could not delete expense" });
     }
+});
+
+// Receipt routes
+function getReceiptId(req) {
+    let id = Number(req.params.receiptId);
+
+    if (!Number.isSafeInteger(id) || id < 1) {
+        throw new Error("Invalid receipt.");
+    }
+
+    return id;
+}
+
+function validateReceipt(body) {
+    let { title, date, category, paidBy, items } = body || {};
+    let categories = ["Lodging", "Food", "Transportation", "Activities", "Other"];
+
+    if (typeof title !== "string" ||
+        !title.trim() ||
+        title.length > 150 ||
+        !categories.includes(category) ||
+        !Number.isSafeInteger(paidBy) ||
+        paidBy < 1 ||
+        typeof date !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        throw new Error("Enter a receipt name, date, category, and payer.");
+    }
+
+    let parsed = new Date(date + "T00:00:00Z");
+
+    if (isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) {
+        throw new Error("Invalid receipt date.");
+    }
+
+    return {
+        title: title.trim(),
+        date,
+        category,
+        paidBy,
+        ...calculateReceipt(items)
+    };
+}
+
+// List receipts for a trip.
+app.get("/trips/:tripId/receipts", requireLogin, requireTripMember, async (req, res) => {
+    try {
+        let result = await pool.query(
+            `SELECT r.id, r.title, r.category,
+                    TO_CHAR(r.receipt_date, 'YYYY-MM-DD') AS date,
+                    r.total, r.paid_by, r.created_by, u.username AS payer
+             FROM receipts r
+             JOIN users u ON u.id = r.paid_by
+             WHERE r.group_id = $1
+             ORDER BY r.receipt_date DESC, r.id DESC`,
+            [req.params.tripId]
+        );
+
+        res.json({ receipts: result.rows });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Could not load receipts." });
+    }
+});
+
+// Load one receipt and its itemized total.
+app.get("/trips/:tripId/receipts/:receiptId", requireLogin, requireTripMember, async (req, res) => {
+    try {
+        let result = await pool.query(
+            `SELECT id, expense_id, title, category,
+                    TO_CHAR(receipt_date, 'YYYY-MM-DD') AS date,
+                    paid_by, created_by, items, breakdown
+             FROM receipts
+             WHERE id = $1 AND group_id = $2`,
+            [getReceiptId(req), req.params.tripId]
+        );
+
+        if (!result.rows.length) {
+            return res.status(404).json({ error: "Receipt not found." });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        res.status(400).json({ error: "Could not load receipt." });
+    }
+});
+
+// Save the receipt and its expense together so neither is saved alone.
+app.post("/trips/:tripId/receipts", requireLogin, requireTripMember, async (req, res) => {
+    let data;
+
+    try {
+        let body = req.body || {};
+        let hasAssignments = Array.isArray(body.items) && body.items.some(function (item) {
+            return item && item.members !== undefined;
+        });
+
+        if (body.photo || hasAssignments || body.tax !== undefined || body.tip !== undefined) {
+            return res.status(400).json({
+                error: "This version supports manual receipt items and totals only."
+            });
+        }
+
+        data = validateReceipt(body);
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+
+    let client;
+
+    try {
+        client = await pool.connect();
+        await client.query("BEGIN");
+
+        let members = await client.query(
+            "SELECT user_id FROM group_members WHERE group_id = $1 FOR SHARE",
+            [req.params.tripId]
+        );
+        let allowed = new Set(members.rows.map(function (row) {
+            return row.user_id;
+        }));
+
+        if (!allowed.has(req.session.user.id) || !allowed.has(data.paidBy)) {
+            await client.query("ROLLBACK");
+            return res.status(400).json({ error: "The payer must be a trip member." });
+        }
+
+        let total = (data.totalCents / 100).toFixed(2);
+        let expense = await client.query(
+            `INSERT INTO expenses
+                (group_id, description, category, amount, expense_date, paid_by, created_by)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             RETURNING id`,
+            [
+                req.params.tripId,
+                data.title,
+                data.category,
+                total,
+                data.date,
+                data.paidBy,
+                req.session.user.id
+            ]
+        );
+
+        let receipt = await client.query(
+            `INSERT INTO receipts
+                (title, category, receipt_date, paid_by, total, items, breakdown,
+                 group_id, expense_id, created_by)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+             RETURNING id`,
+            [
+                data.title,
+                data.category,
+                data.date,
+                data.paidBy,
+                total,
+                JSON.stringify(data.items),
+                JSON.stringify(data),
+                req.params.tripId,
+                expense.rows[0].id,
+                req.session.user.id
+            ]
+        );
+
+        await client.query("COMMIT");
+        res.status(201).json({ id: receipt.rows[0].id });
+    } catch (error) {
+        if (client) {
+            await client.query("ROLLBACK");
+        }
+
+        console.error(error);
+        res.status(500).json({ error: "Could not save receipt." });
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+});
+
+app.use((error, req, res, next) => {
+    if (error.type === "entity.too.large") return res.status(413).json({ error: "Request is too large." });
+    if (error.type === "entity.parse.failed") return res.status(400).json({ error: "Invalid request data." });
+    next(error);
 });
 
 app.listen(port, hostname, () => {
