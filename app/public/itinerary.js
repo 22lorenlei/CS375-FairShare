@@ -401,5 +401,6 @@ if (!Number.isInteger(tripId) || tripId < 1) {
     document.getElementById("tripDetails").textContent = "No trip selected";
     showMessage("Open an itinerary from My Trips to select a trip.", "error");
 } else {
+    loadTripNavigation("itinerary");
     loadTrip();
 }

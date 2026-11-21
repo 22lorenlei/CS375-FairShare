@@ -19,11 +19,19 @@ function loadTripNavigation(activePage) {
       document.getElementById("overview-link").href =
         "/trip.html?tripId=" + tripId;
 
+      document.getElementById("itinerary-link").href =
+        "/itinerary.html?tripId=" + encodeURIComponent(tripId);
+
       document.getElementById("travel-link").href =
         "/travel.html?tripId=" + tripId;
 
       document.getElementById("expenses-link").href =
         "/trip-details.html?tripId=" + encodeURIComponent(tripId);
+
+      if (activePage == "itinerary") {
+        document.getElementById("itinerary-link").classList.add("active-trip-link");
+        document.getElementById("itinerary-link").setAttribute("aria-current", "page");
+      }
 
       if (activePage == "expenses") {
         document.getElementById("expenses-link").classList.add("active-trip-link");
