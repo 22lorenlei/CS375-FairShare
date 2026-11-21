@@ -445,14 +445,21 @@ app.post("/addEvent", requireLogin, async (req, res) => {
 
     let sql = `
        INSERT INTO events(travel_groups_id, event_name, category, total_price, start_date, end_date, location)
-	VALUES($1, $2, $3, $4, $5, $6, $7)
+	SELECT id, $2::text, $3::text, $4::float, $5::date, $6::date, $7::text
+	FROM travel_groups
+	WHERE id = $1
+	  AND $5::date >= start_date
+	  AND $6::date BETWEEN $5::date AND end_date
 	`;
 
     let values = [tripId, eventName, eventCategory, eventTotalPrice,
 	    eventStartDate, eventEndDate, eventLocation];
 
     try {
-	await pool.query(sql, values);
+	let result = await pool.query(sql, values);
+	if (result.rowCount === 0) {
+		return res.status(400).json({ error: "Event dates must be within the trip dates." });
+	}
 	res.status(200).json({
 		message: "Event added successfully"
 	});
@@ -549,6 +556,12 @@ app.post("/editEvent", requireLogin, async (req, res) => {
 		location=($5),
 		total_price=($6)
 		WHERE (id=($7) AND travel_groups_id=($8))
+		  AND EXISTS (
+			SELECT 1 FROM travel_groups
+			WHERE id = $8
+			  AND $3::date >= start_date
+			  AND $4::date BETWEEN $3::date AND end_date
+		  )
 	`;
 
 	console.log(tripId, eventId, eventName, startDate, endDate, eventLocation, price);
@@ -565,7 +578,10 @@ app.post("/editEvent", requireLogin, async (req, res) => {
 	];
 
 	try {
-		await pool.query(sql, values);
+		let result = await pool.query(sql, values);
+		if (result.rowCount === 0) {
+			return res.status(400).json({ error: "Event dates must be within the trip dates." });
+		}
 		res.status(200).json({
 			message: "Event edited successfully"
 		});
@@ -817,6 +833,41 @@ app.get("/api/trips/:tripId", requireLogin, requireTripMember, (req, res) => {
         error: "Database error",
       });
     });
+});
+
+app.post("/api/trips/:tripId/flights", requireLogin, requireTripMember, async (req, res) => {
+  let tripId = req.params.tripId;
+  let { airline, price, outboundRoute, returnRoute } = req.body;
+
+  if (!airline || !outboundRoute || !Number.isFinite(price) || price < 0) {
+    return res.status(400).json({ error: "Flight details are missing or invalid." });
+  }
+
+  let outboundName = airline + " Outbound: " + outboundRoute;
+  let returnName = returnRoute ? airline + " Return: " + returnRoute : null;
+
+  // Save both legs together and charge the full fare only once.
+  let sql = `
+    INSERT INTO events (travel_groups_id, event_name, category, total_price, start_date, end_date, location)
+    SELECT id, $2::text, 'Flight', $3::float, start_date, start_date, $4::text
+    FROM travel_groups
+    WHERE id = $1 AND start_date <= end_date
+    UNION ALL
+    SELECT id, $5::text, 'Flight', 0, end_date, end_date, $6::text
+    FROM travel_groups
+    WHERE id = $1 AND start_date <= end_date AND $5::text IS NOT NULL
+  `;
+
+  try {
+    let result = await pool.query(sql, [tripId, outboundName, price, outboundRoute, returnName, returnRoute]);
+    if (result.rowCount === 0) {
+      return res.status(400).json({ error: "Set the trip dates before adding a flight." });
+    }
+    res.json({ message: "Event added successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Could not add flight." });
+  }
 });
 
 app.get("/api/trips/:tripId/flights", requireLogin, requireTripMember, (req, res) => {

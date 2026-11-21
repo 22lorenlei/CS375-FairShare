@@ -211,34 +211,25 @@ searchButton.addEventListener("click", () => {
           addButton.className = "add-trip-button";
 
           addButton.addEventListener("click", () => {
-            let startDate = flight.outbound.departing_at.substring(0, 10);
-            let endDate = startDate;
-
+            let outboundRoute =
+              flight.outbound.origin + " to " + flight.outbound.destination;
+            let returnRoute = null;
             if (flight.returning != null) {
-              endDate = flight.returning.arriving_at.substring(0, 10);
+              returnRoute = flight.returning.origin + " to " + flight.returning.destination;
             }
 
-            let location =
-              flight.outbound.origin + " to " + flight.outbound.destination;
-
-            fetch("/addEvent", {
+            addButton.disabled = true;
+            message.textContent = "";
+            fetch("/api/trips/" + tripId + "/flights", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                tripId: Number(tripId),
-                eventName:
-                  flight.airline +
-                  " " +
-                  flight.outbound.origin +
-                  " to " +
-                  flight.outbound.destination,
-                eventCategory: "Flight",
-                eventTotalPrice: Number(flight.price),
-                eventStartDate: startDate,
-                eventEndDate: endDate,
-                eventLocation: location,
+                airline: flight.airline,
+                price: Number(flight.price),
+                outboundRoute: outboundRoute,
+                returnRoute: returnRoute,
               }),
             })
               .then((response) => {
@@ -247,13 +238,14 @@ searchButton.addEventListener("click", () => {
               .then((body) => {
                 if (body.message == "Event added successfully") {
                   addButton.textContent = "Added";
-                  addButton.disabled = true;
                 } else {
-                  console.log(body);
+                  message.textContent = body.error || "Could not add flight.";
+                  addButton.disabled = false;
                 }
               })
-              .catch((error) => {
-                console.log(error);
+              .catch(() => {
+                message.textContent = "Could not add flight.";
+                addButton.disabled = false;
               });
           });
 

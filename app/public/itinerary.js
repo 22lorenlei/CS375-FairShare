@@ -103,6 +103,14 @@ function loadTrip() {
         }
         document.getElementById("tripDetails").textContent = details.join("  •  ");
 
+        let tripStart = (selectedTrip.start_date || "").substring(0, 10);
+        let tripEnd = (selectedTrip.end_date || "").substring(0, 10);
+        let dateInputs = ["eventStartDate", "eventEndDate", "editStartDate", "editEndDate"];
+        for (let id of dateInputs) {
+            document.getElementById(id).min = tripStart;
+            document.getElementById(id).max = tripEnd;
+        }
+
         // Start on the month the trip begins, not necessarily the current month.
         if (selectedTrip.start_date) {
             let parts = selectedTrip.start_date.substring(0, 10).split("-");
@@ -157,6 +165,8 @@ function showCalendar() {
     let today = new Date();
     let todayString = dateText(today.getFullYear(), today.getMonth(), today.getDate());
     let body = document.getElementById("calendarBody");
+    let tripStart = document.getElementById("eventStartDate").min;
+    let tripEnd = document.getElementById("eventStartDate").max;
 
     document.getElementById("monthTitle").textContent = currentDate.toLocaleDateString("en-US", {
         month: "long", year: "numeric"
@@ -184,7 +194,7 @@ function showCalendar() {
                 top.appendChild(number);
 
                 // Users add events from individual days (no separate top Add Event button).
-                if (selectedTrip) {
+                if (tripStart && tripEnd && date >= tripStart && date <= tripEnd) {
                     let plus = document.createElement("button");
                     plus.type = "button";
                     plus.className = "addButton";
@@ -274,7 +284,7 @@ document.getElementById("eventForm").addEventListener("submit", function (event)
 
 document.getElementById("eventStartDate").addEventListener("change", function () {
     let endDate = document.getElementById("eventEndDate");
-    endDate.min = this.value;
+    endDate.min = this.value || this.min;
     if (endDate.value < this.value) endDate.value = this.value;
 });
 
@@ -311,6 +321,7 @@ document.getElementById("today").addEventListener("click", function () {
 
 editButton.addEventListener("click", function (e) {
 	e.preventDefault();
+	document.getElementById("editEventMessage").textContent = "";
 	detailsModal.classList.add("editing");    
 });
 
@@ -348,6 +359,17 @@ saveChangesButton.addEventListener("click", function () {
 	let endDate = document.getElementById("editEndDate").value;
 	let eventLocation = document.getElementById("editEventLocation").value;
 	let price = document.getElementById("editPrice").value;
+	let feedback = document.getElementById("editEventMessage");
+
+	feedback.textContent = "";
+	if (!document.getElementById("editStartDate").reportValidity() ||
+	    !document.getElementById("editEndDate").reportValidity()) {
+		return;
+	}
+	if (endDate < startDate) {
+		feedback.textContent = "End date must be on or after the start date.";
+		return;
+	}
 
 	fetch("/editEvent", {
 		method: "POST",
@@ -369,7 +391,7 @@ saveChangesButton.addEventListener("click", function () {
 		detailsModal.classList.remove("editing");
 		loadEvents();
 	}).catch(function (error) {
-		console.log(error);
+		feedback.textContent = error.message;
 	});
 });
 
