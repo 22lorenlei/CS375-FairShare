@@ -323,6 +323,10 @@ searchHotelsButton.addEventListener("click", () => {
 
           hotelDiv.append(name);
 
+          let stayDates = document.createElement("p");
+          stayDates.textContent = "Stay: " + checkIn + " to " + checkOut;
+          hotelDiv.append(stayDates);
+
           if (hotel.hotel_class != null) {
             let hotelClass = document.createElement("p");
 

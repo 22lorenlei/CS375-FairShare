@@ -79,7 +79,20 @@ function renderExpenses() {
     document.getElementById("remaining").classList.toggle("over-budget", spent > budget);
     let categories = document.getElementById("categories");
     categories.replaceChildren();
-    ["Lodging", "Food", "Transportation", "Activities", "Other"].forEach(function (category) {
+    let categoryNames = ["Lodging", "Food", "Transportation", "Activities", "Other"];
+    for (let i = 0; i < expenses.length; i++) {
+        if (!categoryNames.includes(expenses[i].category)) {
+            categoryNames.push(expenses[i].category);
+        }
+    }
+    let categoryOptions = document.getElementById("expenseCategoryOptions");
+    categoryOptions.replaceChildren();
+    for (let i = 0; i < categoryNames.length; i++) {
+        let option = document.createElement("option");
+        option.value = categoryNames[i];
+        categoryOptions.appendChild(option);
+    }
+    categoryNames.forEach(function (category) {
         let total = expenses.filter(function (expense) { return expense.category === category; })
             .reduce(function (sum, expense) { return sum + cents(expense.amount); }, 0);
         let row = document.createElement("div");
@@ -172,7 +185,7 @@ form.addEventListener("submit", async function (event) {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 description: document.getElementById("expenseDescription").value.trim(),
-                category: document.getElementById("expenseCategory").value,
+                category: document.getElementById("expenseCategory").value.trim(),
                 amount: document.getElementById("expenseAmount").value,
                 date: document.getElementById("expenseDate").value,
                 paidBy: Number(document.getElementById("expensePayer").value)

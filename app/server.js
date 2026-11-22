@@ -697,6 +697,40 @@ function getFlightSlice(slice) {
   };
 }
 
+// Get manual expenses and travel events for the trip.
+let tripExpenseQuery = `
+    SELECT
+        expenses.id,
+        expenses.description,
+        expenses.category,
+        expenses.amount,
+        TO_CHAR(expenses.expense_date, 'YYYY-MM-DD') AS expense_date,
+        users.username AS paid_by_username,
+        'expense' AS source
+    FROM expenses
+    JOIN users ON expenses.paid_by = users.id
+    WHERE expenses.group_id = $1
+
+    UNION ALL
+
+    SELECT
+        events.id,
+        events.event_name AS description,
+        CASE LOWER(events.category)
+            WHEN 'flight' THEN 'Transportation'
+            WHEN 'hotel' THEN 'Lodging'
+            ELSE 'Activities'
+        END AS category,
+        events.total_price AS amount,
+        TO_CHAR(events.start_date, 'YYYY-MM-DD') AS expense_date,
+        'Not recorded' AS paid_by_username,
+        'event' AS source
+    FROM events
+    WHERE events.travel_groups_id = $1
+        AND LOWER(events.category) IN ('flight', 'hotel', 'excursion', 'activity', 'activities')
+    ORDER BY expense_date DESC NULLS LAST, source, id DESC
+`;
+
 app.get(
   "/api/trips/:tripId/overview",
   requireLogin,
@@ -737,6 +771,7 @@ app.get(
     Promise.all([
       pool.query(tripQuery, [tripId]),
       pool.query(eventQuery, [tripId]),
+      pool.query(tripExpenseQuery, [tripId]),
     ])
       .then((results) => {
         let tripResult = results[0];
@@ -750,24 +785,24 @@ app.get(
 
         let trip = tripResult.rows[0];
         let events = eventResult.rows;
+        let expenses = results[2].rows;
 
         let totalSpent = 0;
 
-        for (let i = 0; i < events.length; i++) {
-          if (events[i].total_price != null) {
-            totalSpent += Number(events[i].total_price);
-          }
+        for (let i = 0; i < expenses.length; i++) {
+          totalSpent += Math.round(Number(expenses[i].amount) * 100);
         }
 
-        let startingBudget = Number(trip.starting_budget);
-
-        let remainingBudget = startingBudget - totalSpent;
+        let startingBudget = Math.round(Number(trip.starting_budget) * 100);
+        let remainingBudget = (startingBudget - totalSpent) / 100;
+        totalSpent = totalSpent / 100;
 
         res.json({
           trip: trip,
           total_spent: totalSpent,
           remaining_budget: remainingBudget,
           events: events,
+          expenses: expenses,
         });
       })
       .catch((error) => {
@@ -1268,27 +1303,7 @@ app.get("/trips/:tripId", requireLogin, requireTripMember, async (req, res) => {
 app.get("/trips/:tripId/expenses", requireLogin, requireTripMember, async (req, res) => {
     try {
         let result = await pool.query(
-            `SELECT * FROM (
-                SELECT expenses.id, expenses.description, expenses.category, expenses.amount,
-                       TO_CHAR(expense_date, 'YYYY-MM-DD') AS expense_date,
-                       users.username AS paid_by_username, 'expense' AS source
-                FROM expenses JOIN users ON users.id = expenses.paid_by
-                WHERE group_id = $1
-                UNION ALL
-                SELECT events.id, event_name AS description,
-                       CASE LOWER(category)
-                           WHEN 'flight' THEN 'Transportation'
-                           WHEN 'hotel' THEN 'Lodging'
-                           ELSE 'Activities'
-                       END AS category,
-                       total_price AS amount,
-                       TO_CHAR(start_date, 'YYYY-MM-DD') AS expense_date,
-                       'Not recorded' AS paid_by_username, 'event' AS source
-                FROM events
-                WHERE travel_groups_id = $1
-                  AND LOWER(category) IN ('flight', 'hotel', 'excursion', 'activity', 'activities')
-             ) AS trip_expenses
-             ORDER BY expense_date DESC NULLS LAST, source, id DESC`, [req.params.tripId]);
+            tripExpenseQuery, [req.params.tripId]);
         res.json({ expenses: result.rows });
     } catch (error) {
         console.log(error);
@@ -1299,7 +1314,7 @@ app.get("/trips/:tripId/expenses", requireLogin, requireTripMember, async (req, 
 app.post("/trips/:tripId/expenses", requireLogin, requireTripMember, async (req, res) => {
     let { description, category, amount, date, paidBy } = req.body || {};
     if (typeof description !== "string" || !description.trim() || description.length > 150 ||
-        !["Lodging", "Food", "Transportation", "Activities", "Other"].includes(category) ||
+        typeof category !== "string" || !category.trim() || category.trim().length > 30 ||
         typeof amount !== "string" || !/^\d{1,8}(\.\d{1,2})?$/.test(amount) || Number(amount) <= 0 ||
         !Number.isSafeInteger(paidBy) || paidBy < 1 || typeof date !== "string" ||
         !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
@@ -1314,7 +1329,7 @@ app.post("/trips/:tripId/expenses", requireLogin, requireTripMember, async (req,
             `INSERT INTO expenses (group_id, description, category, amount, expense_date, paid_by, created_by)
              SELECT $1, $2, $3, $4, $5, user_id, $7 FROM group_members
              WHERE group_id = $1 AND user_id = $6 RETURNING id`,
-            [req.params.tripId, description.trim(), category, amount, date, paidBy, req.session.user.id]);
+            [req.params.tripId, description.trim(), category.trim(), amount, date, paidBy, req.session.user.id]);
         if (!result.rows.length) return res.status(400).json({ error: "The payer must be a trip member" });
         res.status(201).json({ id: result.rows[0].id });
     } catch (error) {

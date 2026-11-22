@@ -63,7 +63,7 @@ fetch("/api/trips/" + tripId + "/overview")
 
     displayEvents(body.events);
 
-    displayCategories(body.events);
+    displayCategories(body.expenses);
   })
   .catch((error) => {
     console.log(error);
@@ -142,15 +142,15 @@ function displayEvents(events) {
   }
 }
 
-function displayCategories(events) {
+function displayCategories(expenses) {
   categoryBreakdown.textContent = "";
 
-  let categories = {};
+  let categories = Object.create(null);
 
-  for (let i = 0; i < events.length; i++) {
-    let category = events[i].category;
+  for (let i = 0; i < expenses.length; i++) {
+    let category = expenses[i].category;
 
-    let price = events[i].total_price;
+    let price = expenses[i].amount;
 
     if (category == null) {
       category = "Other";
@@ -161,7 +161,7 @@ function displayCategories(events) {
     }
 
     if (price != null) {
-      categories[category] += Number(price);
+      categories[category] += Math.round(Number(price) * 100);
     }
   }
 
@@ -190,7 +190,7 @@ function displayCategories(events) {
 
     let price = document.createElement("p");
 
-    price.textContent = "$" + categories[category].toFixed(2);
+    price.textContent = "$" + (categories[category] / 100).toFixed(2);
 
     row.append(name);
     row.append(price);

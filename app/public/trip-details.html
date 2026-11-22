@@ -42,7 +42,8 @@
         <label for="expenseDescription">Description</label>
         <input id="expenseDescription" maxlength="150" placeholder="e.g. Hotel" required>
         <label for="expenseCategory">Category</label>
-        <select id="expenseCategory" required><option>Lodging</option><option>Food</option><option>Transportation</option><option>Activities</option><option>Other</option></select>
+        <input id="expenseCategory" list="expenseCategoryOptions" maxlength="30" placeholder="Choose or type a category" required>
+        <datalist id="expenseCategoryOptions"><option value="Lodging"><option value="Food"><option value="Transportation"><option value="Activities"><option value="Other"></datalist>
         <label for="expenseAmount">Amount ($)</label>
         <input id="expenseAmount" type="number" min="0.01" max="99999999.99" step="0.01" placeholder="0.00" required>
         <label for="expenseDate">Date</label><input id="expenseDate" type="date" required>
