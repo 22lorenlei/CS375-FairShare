@@ -55,7 +55,7 @@ app.get("/", (req, res) => {
     res.redirect(req.session.user ? "/trips.html" : "/login.html");
 });
 
-app.get(["/trips.html", "/trip-details.html"], (req, res, next) => {
+app.get(["/trips.html", "/trip-details.html", "/settings.html"], (req, res, next) => {
     res.set("Cache-Control", "no-store");
     if (!req.session.user) return res.redirect("/login.html");
     next();
@@ -149,7 +149,6 @@ app.post("/register", (req, res) => {
             });
         }).catch((error) => {
             console.log(error);
-	    console.log(username, email, password);
             if (error.detail?.includes('email')) {
             return res.status(400).json({
                 message: "Account with this email already exists!"
@@ -166,6 +165,93 @@ app.post("/register", (req, res) => {
             })
             }
         });
+    });
+});
+
+
+app.post("/account/username", requireLogin, (req, res) => {
+  console.log(req.body);
+  let userId = req.session.user.id;
+  const username = req.body?.username;
+
+  if (typeof username !== "string" || username.length < 3 || username.length > 50 || username.includes(" ")){
+        return res.status(400).json({
+            message: "Invalid Input"
+        });
+  };
+
+  pool.query(
+        `UPDATE users
+        SET USERNAME = $1
+        WHERE id = $2
+        RETURNING id, username`,
+        [username, userId]
+        ).then((result) => {
+          req.session.user.username = result.rows[0].username;
+          return res.status(200).json({
+              message: "Changes Saved!"
+            });
+        }).catch((error) => {
+            console.log(error);
+            if (error.detail?.includes('username')) {
+                return res.status(400).json({
+                message: "Account with this username already exists!"
+                })
+            }
+            else {
+                return res.status(400).json({
+                message: "Database side error!"
+            })};
+
+        });
+});
+
+app.post("/account/password", requireLogin, (req, res) => {
+  let userId = req.session.user.id;
+  
+  const newPassword = req.body?.newPassword;
+  const currentPassword = req.body?.currentPassword;
+
+  if (typeof currentPassword !== "string" || currentPassword.length < 8 || currentPassword.length > 64 || typeof newPassword !== "string" || newPassword.length < 8 || newPassword.length > 64) {
+    return res.status(400).json({
+            message: "Invalid Input"
+        });
+  };
+
+  pool.query(
+    `SELECT password 
+    FROM users
+    WHERE id = $1`,[userId]
+  ).then((result) => {
+    
+    const currentPasswordHash = result.rows[0].password;
+    
+
+    // Compars new passwords hash with current stored passwords hash
+    return argon2.verify(currentPasswordHash, currentPassword).then((isMatch) => {
+      if (!isMatch) {
+        return res.status(400).json({
+          message: "Current password is incorrect!"
+        });
+      };
+      return argon2.hash(newPassword).then((newHashedPassword) => {
+        return pool.query(
+          `UPDATE users
+          SET password = $1
+          WHERE id = $2`,
+          [newHashedPassword, userId]
+        ).then(() => {
+          return res.status(200).json({
+            message: "Password Updated!"
+          });
+        });
+      });
+    });
+  }).catch((error)=>{
+      console.log(error);
+      return res.status(500).json({
+        message: "Database side error!"
+      });
     });
 });
 
