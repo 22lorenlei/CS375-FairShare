@@ -221,7 +221,6 @@ friendsButton.addEventListener("click", (event) => {
 		return response.json();
 	}).then((body) => {
 		if (body.message === "Success") {
-			console.log("yoyo");
 			let contents = body.contents;
 			console.log(contents);
 			for (let content of contents) {
@@ -251,18 +250,16 @@ mailButton.addEventListener("click", (event) => {
 		return response.json();
 	}).then((body) => {
 		if (body.message === "Success") {
-			console.log(body.message);
-			console.log(body);
-			console.log(body.contents);
 			let contents = body.contents;
+			console.log(contents);
 			for (let content of contents) {
 				let tr = document.createElement("tr");
 				let nameTd = document.createElement("td");
 				let emailTd = document.createElement("td");
 				let acceptTd = document.createElement("td");
 				let declineTd = document.createElement("td");
-				nameTd.textContent = value["username"];
-				emailTd.textContent = value["email"];
+				nameTd.textContent = content["username"];
+				emailTd.textContent = content["email"];
 				
 				let acceptButton = document.createElement("button");
 				let declineButton = document.createElement("button");
@@ -271,8 +268,8 @@ mailButton.addEventListener("click", (event) => {
 				declineButton.textContent = "Decline";
 				acceptButton.classList.add("accept-friend-button");
 				declineButton.classList.add("decline-friend-button");
-				acceptButton.dataset.id = value["id"];
-				declineButton.dataset.id = value["id"];
+				acceptButton.dataset.id = content["id"];
+				declineButton.dataset.id = content["id"];
 				acceptTd.append(acceptButton);
 				declineTd.append(declineButton);
 
@@ -319,7 +316,7 @@ function acceptFriendRequest(id, row) {
 	}).then((response) => {
 		return response.json();
 	}).then((body) => {
-		if (body.status === 200) {
+		if (body.message === "Success") {
 			row.remove();
 		} else {
 			incomingFriendsTableMessage.innerText = body.message;
@@ -342,7 +339,7 @@ function declineFriendRequest(id, row) {
 	}).then((response) => {
 		return response.json();
 	}).then((body) => {
-		if (body.status === 200) {
+		if (body.message === "Success") {
 			row.remove();
 		} else {
 			incomingFriendsTableMessage.innerText = body.message;

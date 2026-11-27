@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS travel_groups CASCADE;
 DROP TABLE IF EXISTS group_members CASCADE;
 DROP TABLE IF EXISTS user_responsibility CASCADE;
+DROP TABLE IF EXISTS friends CASCADE;
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -71,7 +72,9 @@ CREATE TABLE friends (
 	user1 INTEGER NOT NULL REFERENCES users(id),
 	user2 INTEGER NOT NULL REFERENCES users(id),
 	status VARCHAR(100),
+	sender INTEGER NOT NULL REFERENCES users(id),
+	recipient INTEGER NOT NULL REFERENCES users(id),
 
 	PRIMARY KEY (user1, user2),
-	CHECK (user1 < user2) /* to prevent storing equivalent friendship */
+	CHECK (user1 < user2) /* to prevent storing equivalent friendship, we store one direction */
 );

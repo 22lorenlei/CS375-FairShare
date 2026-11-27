@@ -258,6 +258,7 @@ app.post("/account/password", requireLogin, (req, res) => {
 app.post("/account/addFriends", requireLogin, async (req, res) => {
 	let userId = req.session.user.id;
 
+		// maybe add a check if you are friending yoruself
 	let friendInput = req.body?.friendInput;
 	console.log(friendInput);
 	if (friendInput === undefined || friendInput.length === 0) {
@@ -267,7 +268,6 @@ app.post("/account/addFriends", requireLogin, async (req, res) => {
 	}
 	let selectSql = `SELECT id FROM users WHERE email=($1)`;
 	let selectValues = [friendInput];
-	console.log(selectValues);
 
 	let friendId;
 	try {
@@ -313,9 +313,10 @@ app.post("/account/addFriends", requireLogin, async (req, res) => {
 	}
 
 	let insertSql = `
-		INSERT INTO friends(user1, user2, status)
-		VALUES($1, $2, 'pending')`;
+		INSERT INTO friends(user1, user2, status, sender, recipient)
+		VALUES($1, $2, 'pending', $3, $4)`;
 	let insertValues = [userId, friendId].sort();
+	insertValues.push(userId, friendId);
 
 	try {
 		await pool.query(insertSql, insertValues);
@@ -331,9 +332,13 @@ app.post("/account/addFriends", requireLogin, async (req, res) => {
 });
 
 app.get("/account/getFriends", requireLogin, async (req, res) => {
+	console.log("HERE getFriends");
 	let userId = req.session.user.id;
 
-	let getFriendsSql = `SELECT user2 FROM friends WHERE (user1=($1) AND status='accepted')`;
+	let getFriendsSql = `
+	SELECT CASE WHEN user1=($1) THEN user2 ELSE user1 END AS id	
+	FROM friends WHERE ((user1=($1) OR user2=($1)) AND status='accepted')
+	`;
 	let getFriendsValues = [userId];
 
 	let friends = [];
@@ -341,12 +346,13 @@ app.get("/account/getFriends", requireLogin, async (req, res) => {
 		let result = await pool.query(getFriendsSql, getFriendsValues);
 		if (result.rowCount === 0) {
 			return res.status(200).json({
-				message: "Success"
+				message: "Success",
+				contents: result.rows
 			});
 		}
 		let contents = result.rows;
 		for (let [key, value] of Object.entries(contents)) {
-			friends.push(value["user2"]);
+			friends.push(value["id"]);
 		}
 
 	} catch (error) {
@@ -376,14 +382,17 @@ app.get("/account/getFriends", requireLogin, async (req, res) => {
 });
 
 app.get("/account/getFriendRequests", requireLogin, async (req, res) => {
+	console.log("Here getFriendRequests");
 	let userId = req.session.user.id;
 
-	let getFriendsSql = `SELECT user2 FROM friends WHERE (user1=($1) AND status='pending')`;
+	let getFriendsSql = `SELECT sender FROM friends WHERE (recipient=($1) AND status='pending')`;
 	let getFriendsValues = [userId];
 
 	let friends = [];
 	try {
 		let result = await pool.query(getFriendsSql, getFriendsValues);
+		console.log(result);
+		console.log(result.rows);
 		if (result.rowCount === 0) {
 			return res.status(200).json({
 				message: "Success",
@@ -392,7 +401,7 @@ app.get("/account/getFriendRequests", requireLogin, async (req, res) => {
 		}
 		let contents = result.rows;
 		for (let [key, value] of Object.entries(contents)) {
-			friends.push(value["user2"]);
+			friends.push(value["sender"]);
 		}
 
 	} catch (error) {
@@ -401,12 +410,14 @@ app.get("/account/getFriendRequests", requireLogin, async (req, res) => {
 			message: "DB Problems"
 		});
 	}
+	console.log(friends);
 	
 	let getFriendsInfoSql = `SELECT id, username, email FROM users WHERE id=ANY($1)`;
 	let getFriendsInfoValues = [friends];	
 
 	try {
 		let result = await pool.query(getFriendsInfoSql, getFriendsInfoValues);
+		console.log(result);
 		return res.status(200).json({
 			message: "Success",
 			contents: result.rows
@@ -422,6 +433,7 @@ app.get("/account/getFriendRequests", requireLogin, async (req, res) => {
 app.post("/account/acceptFriendRequest", requireLogin, async (req, res) => {
 	let userId = req.session.user.id;
 	let friendId = req.body.id;
+	console.log(userId, friendId);
 
 	let acceptFriendSql = `
 	UPDATE friends SET status='accepted' 
@@ -447,8 +459,9 @@ app.post("/account/declineFriendRequest", requireLogin, async (req, res) => {
 
 	let deleteFriendSql = `
 	DELETE FROM friends  
-	WHERE user1=($1) AND user2=($2) and status='pending'`;
+	WHERE (user1=($1) AND user2=($2) and status='pending')`;
 	let deleteFriendValues = [userId, friendId].sort();
+	console.log(deleteFriendValues);
 
 	try {
 		await pool.query(deleteFriendSql, deleteFriendValues);
