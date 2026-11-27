@@ -255,6 +255,213 @@ app.post("/account/password", requireLogin, (req, res) => {
     });
 });
 
+app.post("/account/addFriends", requireLogin, async (req, res) => {
+	let userId = req.session.user.id;
+
+	let friendInput = req.body?.friendInput;
+	console.log(friendInput);
+	if (friendInput === undefined || friendInput.length === 0) {
+		return res.status(400).json({
+			message: "Invalid input"
+		});
+	}
+	let selectSql = `SELECT id FROM users WHERE email=($1)`;
+	let selectValues = [friendInput];
+	console.log(selectValues);
+
+	let friendId;
+	try {
+		let result = await pool.query(selectSql, selectValues);
+		if (result.rowCount === 0) {
+			return res.status(400).json({
+				message: "Email doesn't exist"
+			});
+		}
+		friendId = result.rows[0]["id"];
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			message: "DB Problems"
+		});
+	}
+
+	let checkFriendsSql = `
+		SELECT status
+		FROM friends
+		WHERE (user1=($1) AND user2=($2))`;
+	let checkFriendsValue = [userId, friendId].sort();
+	try {
+		let result = await pool.query(checkFriendsSql, checkFriendsValue);
+		if (result.rowCount !== 0) {
+			console.log(result);
+			let friendStatus = result.rows[0]["status"];
+			if (friendStatus === "accepted") {
+				return res.status(400).json({
+					message: "You are already friends"
+				});
+			} else {
+				return res.status(400).json({
+					message: "Friendship status is currently: " + friendStatus
+				});
+			}
+		}
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			message: "DB Problems"
+		});
+	}
+
+	let insertSql = `
+		INSERT INTO friends(user1, user2, status)
+		VALUES($1, $2, 'pending')`;
+	let insertValues = [userId, friendId].sort();
+
+	try {
+		await pool.query(insertSql, insertValues);
+		return res.status(200).json({
+			message: "Friend Request Sent"
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			message: "DB Problems"
+		});
+	}	
+});
+
+app.get("/account/getFriends", requireLogin, async (req, res) => {
+	let userId = req.session.user.id;
+
+	let getFriendsSql = `SELECT user2 FROM friends WHERE (user1=($1) AND status='accepted')`;
+	let getFriendsValues = [userId];
+
+	let friends = [];
+	try {
+		let result = await pool.query(getFriendsSql, getFriendsValues);
+		if (result.rowCount === 0) {
+			return res.status(200).json({
+				message: "Success"
+			});
+		}
+		let contents = result.rows;
+		for (let [key, value] of Object.entries(contents)) {
+			friends.push(value["user2"]);
+		}
+
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			message: "DB Problems"
+		});
+	}
+
+	let getFriendsInfoSql = `SELECT id, username, email FROM users WHERE id=ANY($1)`;
+	let getFriendsInfoValues = [friends];	
+
+	try {
+		let result = await pool.query(getFriendsInfoSql, getFriendsInfoValues);
+		console.log(result.rows);
+		return res.status(200).json({
+			message: "Success",
+			contents: result.rows
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			message: "DB Problems"
+		});
+	}
+
+});
+
+app.get("/account/getFriendRequests", requireLogin, async (req, res) => {
+	let userId = req.session.user.id;
+
+	let getFriendsSql = `SELECT user2 FROM friends WHERE (user1=($1) AND status='pending')`;
+	let getFriendsValues = [userId];
+
+	let friends = [];
+	try {
+		let result = await pool.query(getFriendsSql, getFriendsValues);
+		if (result.rowCount === 0) {
+			return res.status(200).json({
+				message: "Success",
+				contents: result.rows
+			});
+		}
+		let contents = result.rows;
+		for (let [key, value] of Object.entries(contents)) {
+			friends.push(value["user2"]);
+		}
+
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			message: "DB Problems"
+		});
+	}
+	
+	let getFriendsInfoSql = `SELECT id, username, email FROM users WHERE id=ANY($1)`;
+	let getFriendsInfoValues = [friends];	
+
+	try {
+		let result = await pool.query(getFriendsInfoSql, getFriendsInfoValues);
+		return res.status(200).json({
+			message: "Success",
+			contents: result.rows
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			message: "DB Problems"
+		});
+	}
+});
+
+app.post("/account/acceptFriendRequest", requireLogin, async (req, res) => {
+	let userId = req.session.user.id;
+	let friendId = req.body.id;
+
+	let acceptFriendSql = `
+	UPDATE friends SET status='accepted' 
+	WHERE user1=($1) AND user2=($2)`;
+	let acceptFriendValues = [userId, friendId].sort();
+
+	try {
+		await pool.query(acceptFriendSql, acceptFriendValues);
+		return res.status(200).json({
+			message: "Success"
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			message: "DB Problems"
+		});
+	}		
+});
+
+app.post("/account/declineFriendRequest", requireLogin, async (req, res) => {
+	let userId = req.session.user.id;
+	let friendId = req.body.id;
+
+	let deleteFriendSql = `
+	DELETE FROM friends  
+	WHERE user1=($1) AND user2=($2) and status='pending'`;
+	let deleteFriendValues = [userId, friendId].sort();
+
+	try {
+		await pool.query(deleteFriendSql, deleteFriendValues);
+		return res.status(200).json({
+			message: "Success"
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			message: "DB Problems"
+		});
+	}		
+});
 
 // Create a new trip
 app.post("/trips", requireLogin, async (req, res) => {

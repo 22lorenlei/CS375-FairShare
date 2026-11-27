@@ -65,3 +65,13 @@ CREATE TABLE expenses (
     paid_by INTEGER NOT NULL REFERENCES users(id),
     created_by INTEGER NOT NULL REFERENCES users(id)
 );
+
+/* A friends B is the same as B friends A. We just pick one direction. Status is 'pending' or 'accepted' */
+CREATE TABLE friends (
+	user1 INTEGER NOT NULL REFERENCES users(id),
+	user2 INTEGER NOT NULL REFERENCES users(id),
+	status VARCHAR(100),
+
+	PRIMARY KEY (user1, user2),
+	CHECK (user1 < user2) /* to prevent storing equivalent friendship */
+);

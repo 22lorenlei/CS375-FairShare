@@ -26,6 +26,7 @@
                 <button id="payment-preferences" class="sidebar-btn" type="button">Payment Preferences</button>
                 <button id="notification-settings" class="sidebar-btn" type="button">Notification Settings</button>
                 <button id="friends" class="sidebar-btn" type="button">Friends</button>
+		<button id="mail" class="sidebar-btn" type="button">Mail</button>
             </div>
 
             <div class="panel">
@@ -72,8 +73,28 @@
 
                 <div id="show-friends" class="hidden">
                     <h2>Friends</h2>
-                    <p>To do later</p>
+			<div class="friends-container">
+				<div id="friends-table-message"> </div>
+				<table id="current-friends-table" class="friends-table">
+				</table>
+
+				<div id="friends-form-div">
+					<form id="add-friends-form" class="settings-form">
+						<label> Enter Email: </label>
+						<input id="friends-input" placeholder="e.g. testing2@gmail.com"> </input>
+						<button id="add-friends" type="submit" class="dark-button"> Add Friends </button>
+						<div id="friend-message" class="status-message"></div>
+					</form>
+				</div>
+			</div>
                 </div>
+
+		<div id="show-mail" class="hidden">
+			<h2> Incoming Friend Requests </h2>
+			<div id="incoming-friends-table-message"> </div>
+			<table id="incoming-friends-table" class="friends-table">
+			</table>
+		</div>
             </div>
         </div>
     </main>
